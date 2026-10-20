@@ -2,13 +2,13 @@ author: Chanin Nantasenamat
 id: build-a-revenue-dashboard-with-snowflake-workspaces
 categories: snowflake-site:taxonomy/solution-center/certification/quickstart, snowflake-site:taxonomy/product/analytics, snowflake-site:taxonomy/product/ai
 language: en
-summary: Build a native Workspaces dashboard on a semantic view, publish it to a role, and ask why the numbers moved in Snowflake CoWork.
+summary: Get started with Snowflake Dashboards 2.0 using step-by-step Cortex Code prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
 environments: web
 status: Published
 feedback link: https://github.com/Snowflake-Labs/sfquickstarts/issues
 fork repo link: https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces
 
-# Build a Revenue Dashboard with Snowflake Workspaces and CoWork
+# Getting Started with Snowflake Dashboards 2.0
 
 ## Overview
 
@@ -40,9 +40,11 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 ![HTML reports, Dashboards 2.0, Streamlit, and App Runtime positioned by build effort and interactivity](assets/when-to-use-what.png)
 
 ### What You'll Learn
+- How to use the Snowsight Cortex Code `/dashboard` skill and refine a dashboard one prompt at a time
 - How to model revenue, targets, and margin as a semantic view with additive metrics
 - How to create a Cortex Agent with a Cortex Analyst tool over that semantic view
-- How a `.dash` file defines tiles, filters, layout, and SQL datasources
+- How to check generated tile SQL, filters, and totals against a reproducible reference
+- How a native `.dash` file holds the dashboard's tiles, filters, layout, and SQL datasources
 - How to publish a dashboard as an artifact to a single role, with caller's rights
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
@@ -60,14 +62,40 @@ An end-to-end revenue workflow in which every number comes from one definition:
 ### Prerequisites
 - Access to a [Snowflake account](https://signup.snowflake.com/?utm_source=snowflake-devrel&utm_medium=developer-guides&utm_cta=developer-guides)
 - A role that can create databases, API integrations, semantic views, agents, and roles (this guide uses `ACCOUNTADMIN`)
-- Access to Workspaces dashboards and Snowflake CoWork in your account
+- Access to Dashboards 2.0, Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account. At the time of this revision, the [dashboard documentation](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) labels the feature private preview; confirm enrollment with your account team
 - A role with the `MANAGE ACCESS ON DASHBOARD ARTIFACTS` privilege, which is needed to publish dashboards as artifacts and choose who can view them. It is [granted to `PUBLIC` by default](https://docs.snowflake.com/en/release-notes/bcr-bundles/un-bundled/bcr-manage-access-dashboard-artifacts) unless your administrator revoked it
 
 Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
 
+### How to Follow Along
+
+Run the supplied setup scripts to establish a reproducible data foundation, then use the prompts to author your own dashboard in Snowsight. Send one prompt at a time, review CoCo's changes, and complete the check below each prompt before continuing. Keep the same conversation so each refinement has the context of the previous step.
+
+The companion's `dashboards/revenue_pulse.dash` is the completed example used for this guide's screenshots and expected figures. Create your dashboard as `dashboards/revenue_pulse_draft.dash` so you can compare the two without overwriting the example. Generated layouts and wording can differ. If you prefer to explore the completed example first, open it and jump to **Explore with Filters**.
+
+The `/dashboard` skill was confirmed to load in Snowsight during a read-only check. The incremental authoring prompts below are suggested instructions, not a transcript of a completed end-to-end generation run. Validate the result in your account; a successful file check alone does not establish that its SQL or interactions are correct. Advanced chart actions depend on your account's enabled features.
+
+**Note on LLM variability:** LLM generation is non-deterministic: the same prompt can produce different wording, SQL, chart layouts, or sequences of actions on different runs. The [natural-language fraud detection guide](https://www.snowflake.com/en/developers/guides/build-real-time-fraud-detection-model-with-natural-language-in-snowflake-ml/#generate-synthetic-data) makes the same point about variation in generated results. Treat each **Expected output** below as a description of the intended result, not a verbatim response or a guarantee of success. Use the separate **Check** to decide whether to continue.
+
+That variability does not make incorrect totals acceptable. This guide loads fixed synthetic data from the companion repository. With the same data, metric definitions, period, filters, and access, correctly generated queries should reconcile to the same underlying amounts, allowing for display rounding. Investigate differences in totals rather than attributing them to LLM randomness.
+
 ## Setup
 
 ### Connect Snowflake to the Companion Repository
+
+Use the supplied SQL for setup so the examples below share the same object names and synthetic data. CoCo can explain each script before you run it; it does not need to invent a new setup. After pasting the script below into your SQL file, but before running it, use this prompt in the Snowsight CoCo panel with that file open:
+
+```text
+Review this setup SQL without executing it or changing anything.
+Explain which objects it creates, which already-existing objects
+it could affect, and which statements require elevated privileges.
+Check whether it uses COMPUTE_WH and explain where I would substitute
+my own warehouse. Do not execute statements or grant permissions.
+```
+
+**Expected output:** A plain-language review of the setup script, identifying the demo database and schema, Git integration and repository, and any warehouse references. CoCo should distinguish operations that create objects from those that affect existing ones, and explain the permissions they need. The output is an explanation only; nothing should have been created or executed.
+
+**Check:** Review the proposed operations yourself. Use only a dedicated demo database, and resolve warehouse or privilege issues before executing the supplied SQL. A chat explanation is not evidence that setup has run.
 
 In Snowsight, open **Projects > Workspaces**. In **My Workspace**, select **+ Add new > SQL File**. Set the role to `ACCOUNTADMIN` and the warehouse to `COMPUTE_WH`, then paste and run this script (it is also `sql/00_bootstrap.sql` in the repository):
 
@@ -174,6 +202,22 @@ SELECT
 
 The final query should return 54 `CUSTOMERS`, 3 `PRODUCTS`, and 3,888 `REVENUE_ROWS`.
 
+If you need help interpreting the load, ask CoCo to check it without reloading the tables:
+
+```text
+Check the loaded demo data with read-only queries against
+REVENUE_PULSE_DB.DASHBOARD_DEMO.CUSTOMERS,
+REVENUE_PULSE_DB.DASHBOARD_DEMO.PRODUCTS, and
+REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_MONTHLY.
+Report row counts, earliest and latest revenue month, and the
+recorded-driver values. Show the SQL. Do not rerun the setup,
+truncate tables, load files, or change any data.
+```
+
+**Expected output:** A small results summary with a count for each of the three tables, the earliest and latest revenue month, and the recorded-driver values found in the data. The accompanying read-only SQL should let you trace each result back to its source. If a table cannot be read, expect an explicit error rather than a claimed successful load.
+
+**Check:** Match the three row counts above and confirm monthly coverage from October 2024 through September 2026. Stop here if the load is incomplete; charts cannot correct missing source rows.
+
 ## Create the Semantic View
 
 Run `sql/02_semantic_view.sql` from the repository:
@@ -239,7 +283,22 @@ CREATE OR REPLACE SEMANTIC VIEW REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC
   AI_SQL_GENERATION 'Data is monthly and complete through September 2026. Last quarter or Q3 means months 2026-07-01 through 2026-09-01. Ratios are 0-1; present as percentages. Year-over-year compares the same months one year earlier.';
 ```
 
-The gross-margin comment above corrects a stale comment in companion revision `d9c205c`; its `DIV0NULL` expression is unchanged. The `AI_SQL_GENERATION` clause gives Cortex Analyst the intended meaning of "Q3" and "last quarter" for this data. Check the generated query's dates when comparing answers.
+The `AI_SQL_GENERATION` clause gives Cortex Analyst the intended meaning of "Q3" and "last quarter" for this data. Check the generated query's dates when comparing answers.
+
+Before moving on, use a read-only explanation prompt to connect the model to the questions your dashboard will answer:
+
+```text
+Inspect REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW
+without changing it. Explain how customers and products relate to
+monthly revenue, how cents become USD, and why attainment and margin
+must be calculated from totals rather than averaged across accounts.
+Use a small illustrative example, clearly marked as an example.
+Do not create another semantic view or change its definitions.
+```
+
+**Expected output:** An explanation connecting monthly revenue to customers and products through their identifiers, followed by how the model converts cents to dollars. A clearly labeled illustrative example should show why summing revenue and target before dividing gives a weighted attainment ratio, whereas averaging account percentages can misrepresent the total. No model definitions should change.
+
+**Check:** The explanation should distinguish additive amounts from ratios. These definitions are the foundation for both the dashboard and the separate agent.
 
 ## Create the Agent
 
@@ -285,117 +344,391 @@ Then create the viewer role the dashboard is published to (covered in [Publish t
 EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/04_viewer_role.sql;
 ```
 
-## Build the Dashboard
+Revenue Advisor is a separate way to query the semantic view, not a prerequisite for dashboard follow-up chat. To understand that boundary, ask CoCo:
 
-### How the File Works
-
-A `.dash` file is JSON (spec version 2). It holds tiles (text, chart, or table), filters, a 12-column grid layout, and SQL datasources. The repository includes a ready-made file, `dashboards/revenue_pulse.dash`, generated by `scripts/build_dashboard.py`. This version has 15 tiles, 11 SQL datasources, and 7 filters, including the chart-action filters. You don't need to run the script. The excerpts below match [companion revision d9c205c](https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces/tree/d9c205c0b58443cce582db88c2a2edd7e88dd0ae). For the full reference on tiles, filters, and layout, see [Dashboards in Snowflake CoWork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
-
-Every datasource reads additive metrics from the semantic view at month, region, segment, and product grain. Filters are applied outside the view through `{{ filter('ID') }}` macros (see [filter template syntax](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards)). Each row also carries drill-path columns (for example `EMEA › Enterprise`), so a chart click can filter its target tiles, and the trend brush (`BRUSH_MONTH`) replaces the Period while months are picked:
-
-```python
-def base(extra_dims=", revenue.recorded_driver, customers.customer_name", shift_year=False, metrics="revenue.net_revenue, revenue.revenue_target, "
-         "revenue.gross_profit, revenue.total_discounts, revenue.total_refunds"):
-    month = "DATEADD(YEAR, 1, MONTH) AS MONTH" if shift_year else "MONTH"
-    # Drill paths: a bar click emits one path ("EMEA › Enterprise"); the drill filters match it
-    # against these prefix columns.
-    paths = ", ".join(f"{expr} AS {name}" for name, expr in DRILL_PATHS)
-    return (f"SELECT *, {paths} FROM (\n    SELECT {month}, * EXCLUDE (MONTH) FROM SEMANTIC_VIEW(\n        {SV}\n"
-            f"        DIMENSIONS revenue.month, customers.region, customers.segment, products.product_name{extra_dims}\n"
-            f"        METRICS {metrics}))")
-
-
-BRUSH = "{{ filter('BRUSH_MONTH', 'MONTH') }}"
-# TRUE only while months are brushed: an empty filter renders TRUE, so no 1900 date fails it.
-BRUSH_SET = f"EXISTS (SELECT 1 FROM (SELECT DATE '1900-01-01' AS MONTH) WHERE NOT ({BRUSH}))"
-
-
-def where(ids=FILTERS, brush=True):
-    # The trend brush is its own filter so an action never shadows the Period chip; while it is
-    # set it replaces the Period (otherwise a brush outside the Period leaves every tile empty).
-    clauses = [f"({{{{ filter('{i}') }}}} OR {BRUSH_SET})" if brush and i == "MONTH"
-               else f"{{{{ filter('{i}') }}}}" for i in ids]
-    if brush:
-        clauses.append(BRUSH)
-    for d, cols in DRILLS.items():
-        clauses.append("(" + " OR ".join(f"{{{{ filter('{d}', '{d}_{i + 1}') }}}}" for i in range(len(cols))) + ")")
-    return "WHERE " + "\n    AND ".join(clauses)
+```text
+Review the Revenue Advisor agent specification shown in this guide.
+Explain its revenue_analytics tool, semantic-view source, date limits,
+and instructions for separating recorded drivers from hypotheses.
+Do not modify or invoke the agent. Distinguish this agent from a
+CoWork conversation started from a dashboard artifact.
 ```
 
-Ratios such as attainment and margin are computed after aggregation (`DIV0NULL(SUM(NET), SUM(TGT))`), so filtered totals stay correctly weighted. For year-over-year comparison, `shift_year=True` moves each month forward one year. The prior-year rows then pass through the same Period filter as the current rows.
+**Expected output:** A short explanation of how Revenue Advisor routes revenue questions through its `revenue_analytics` tool to the semantic view. It should describe the September 2026 data cutoff and the requirement to distinguish recorded drivers from hypotheses, then contrast that agent workflow with chat over a dashboard's results. This review should not invoke or modify the agent.
 
-KPI tiles are Vega-Lite charts marked as scorecards. They compare `CURRENT_VALUE` with `PRIOR_VALUE` and plot a 12-month sparkline from `DS` and `SERIES_VALUE`. The series ends at the last selected month and retains the region, segment, product, and drill filters:
+**Check:** The agent's source is the same semantic view, but the dashboard's follow-up does not automatically call Revenue Advisor. Creation of the agent is not a test of its answers.
 
-```python
-def scorecard(title, label, decimals=1, increases_better=True, compare=True, thresholds=None):
-    # Sparklines colour by trend direction (polarity), or by fixed bands when thresholds are given.
-    sparkline = ({"sparklineColorMode": "threshold", "thresholdDirection": "higher-is-better",
-                  "thresholds": thresholds} if thresholds else {"sparklineColorMode": "polarity"})
-    return {"title": title, "type": "chart", "spec": {
-        "$schema": "https://vega.github.io/schema/vega-lite/v5.json", "data": {"name": "values"},
-        "usermeta": {"snowflake": {"chartType": "scorecard", "scorecardConfig": {
-            "format": "decimal", "decimals": decimals, "abbreviate": True,
-            "deltaColorMode": "increasesBetter" if increases_better else "decreasesBetter",
-            "comparisonMode": "manual", "comparisonEnabled": compare,
-            "prevColumn": "PRIOR_VALUE", "currentColumn": "CURRENT_VALUE",
-            "displayFormat": "change", "sparklineEnabled": True, **sparkline,
-            "seriesBucketField": "DS", "seriesBucketFieldType": "temporal", "seriesValueField": "SERIES_VALUE",
-            "labelEnabled": True, "labelField": "", "labelText": label}}}}}
-```
+## Build with Cortex Code
 
-The Variance to Target card uses `decimals=0` and turns off comparison (`compare=False`). Its value changes sign from last year, so a percent change would be misleading. Its sparkline uses thresholds: red below −$1.5M, yellow below zero, and green at or above zero. The other sparklines use polarity mode.
+### Open a Git Workspace
 
-The generator also loads the editor-saved donut, Net Revenue, and Variance to Target specs from `config/chart_specs/`. These files preserve the native scorecard rendering and animation settings as well as the donut's in-ring labels. Keep them with the generator when making local changes; the scorecard helper alone does not reproduce those expanded rendering specs.
-
-Filters are a date range defaulting to Q3 2026, plus multi-selects whose options come from table columns:
-
-```python
-    "filters": {
-        "MONTH": {"label": "Period", "mode": "range", "valueType": "DATE",
-                  "default_values": ["2026-07-01", "2026-09-01"]},
-        "REGION": {"label": "Region", "mode": "multi_select", "valueType": "STRING", "options": options("CUSTOMERS", "REGION")},
-        "SEGMENT": {"label": "Segment", "mode": "multi_select", "valueType": "STRING", "options": options("CUSTOMERS", "SEGMENT")},
-        "PRODUCT_NAME": {"label": "Product", "mode": "multi_select", "valueType": "STRING",
-                         "options": options("PRODUCTS", "PRODUCT_NAME")}},
-```
-
-The trend tile ignores the ordinary Period filter, showing the full 24-month context until you brush a range. The separate **Months picked on trend** filter narrows the trend itself and the other data tiles, replacing the Period selection while it is active.
-
-The charts use a muted red, orange, yellow, blue, and teal palette. The heatmap fixes that scale from 55% to 120% attainment: deep misses are red, values around 88% are yellow, and higher attainment moves through blue toward teal. A colour bar at the right edge shows the scale:
-
-```python
-PALETTE = ["#C8524B", "#DD8459", "#E2C27A", "#5E8AC7", "#3E9F98"]
-HEATMAP_SCALE = {"range": PALETTE, "domain": [0.55, 0.7125, 0.875, 1.0375, 1.2], "clamp": True, "interpolate": "rgb"}
-```
-
-The region and waterfall variance colours are relative to the values in each chart, not fixed alert bands anchored at zero. Read the signed values and colour bar rather than treating a colour as a positive/negative flag.
-
-The driver donut sizes each slice by **absolute variance** and puts multiline driver names and signed values inside the ring. Slice areas are not percentages of the net shortfall: positive and negative contributions offset one another. Use the waterfall to see how those signed contributions reconcile to the total gap.
-
-The waterfall's SQL does the stacking, so the Vega-Lite spec only draws floating bars from `START_VALUE` to `END_VALUE`. A running window sum walks through each recorded driver's variance, and a final row closes on the total gap:
-
-```sql
-SUM(V) OVER (ORDER BY V DESC ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS END_VALUE
-```
-
-### Open the Dashboard in a Git Workspace
-
-Create a workspace from the companion repository so the dashboard file appears in Workspaces:
+Create a workspace from the companion repository so you can keep the completed example beside your own draft:
 
 1. In **Workspaces**, select **+** (Create new workspace) at the top of the file tree, then select **Git workspace**.
 2. For **Repository URL**, paste `https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces`. The workspace name fills in from the URL.
 3. For **API integration**, select `REVENUE_PULSE_GIT_API`. The dialog may preselect a different integration, so check this field.
 4. Select **Public repository**, then select **Create**.
 
-The new workspace contains every file in the repository. Open `dashboards/revenue_pulse.dash`. The dashboard toolbar shows its own role and warehouse. Set them to `ACCOUNTADMIN` and `COMPUTE_WH` if they differ.
+Open Cortex Code in this workspace. The following prompts are for **CoCo in Snowsight**, not the CoWork artifact chat or a Desktop skill with an assumed identical name. The [documented authoring entry point](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#creating-a-dashboard) is `/dashboard`; CoCo generates the native file's tiles, SQL, and layout. You do not need to author its JSON yourself.
+
+### 1. Establish the Data Context
+
+Before asking for charts, give CoCo the exact source and define the period. That prevents an attractive dashboard built against the wrong data. This first prompt only inspects the model; the setup scripts above must already have finished.
+
+```text
+/dashboard
+Help me build a native Dashboards 2.0 dashboard in this workspace.
+First inspect REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW.
+Explain the revenue, target, variance, attainment, and gross-margin
+metrics, and the month, region, segment, product, account, and
+recorded-driver dimensions available to us.
+
+This is synthetic monthly data through September 2026.
+Q3 2026 means July, August, and September 2026.
+Do not create or edit any files or database objects yet.
+If the view is unavailable, stop and report the problem.
+```
+
+**Expected output:** CoCo should load the dashboard skill and describe the available metrics and dimensions in business terms, establishing what you can put on a card, chart axis, or filter. It should confirm the source and Q3 date interpretation without creating a dashboard yet. If the skill or view is unavailable, the useful result is a clear blocker to resolve before authoring.
+
+**Check:** CoCo identifies the exact semantic view, USD metrics, and monthly dates. If it proposes a different source, correct that before proceeding. If `/dashboard` is unavailable, confirm feature access rather than switching to an HTML or Streamlit dashboard and treating it as the same result.
+
+### 2. Check the Starting Numbers
+
+Establish a small set of reference numbers before formatting them. Ask CoCo to show its SQL and compute totals, rather than supplying the expected values as numbers to put on cards.
+
+```text
+Using only the semantic view we inspected, run a read-only query
+for Q3 2026 across all regions, segments, and products.
+Return net revenue, target, net revenue minus target,
+target attainment, and gross margin. Show the SQL used.
+Compute ratios from the aggregated amounts, not by averaging
+account percentages. Do not change the data or create files.
+```
+
+**Expected output:** A single Q3 summary row or compact table showing revenue, target, signed variance, attainment, and gross margin, together with the SQL that produced it. This becomes the baseline for your dashboard: a negative variance means the company is behind target, while the two ratios describe attainment and profitability. No chart or file should be generated at this stage.
+
+**Check:** Expect approximately $6.9M net revenue, 86.3% attainment, a $1.09M shortfall, and 71.1% gross margin. Treat these as checks, not hardcoded tile values. Resolve discrepancies in dates, units, or aggregation before building the dashboard.
+
+### 3. Create Four KPI Cards
+
+Start with the question the team asks every morning: are we on target? Four cards are enough to establish a working dashboard before adding detail.
+
+```text
+Create a new native dashboard titled Revenue Pulse
+at dashboards/revenue_pulse_draft.dash. If that file exists,
+stop and ask before replacing it. Leave revenue_pulse.dash unchanged.
+
+Add a short header stating that the data is synthetic and complete
+through September 2026. Below it, add four KPI cards for Q3 2026:
+Net Revenue, Target Attainment, Variance to Target, and Gross Margin.
+Back each card with SQL against the semantic view, not fixed values.
+Show currency units and percentage labels clearly. Use a single-page
+layout with the four cards in one row.
+
+Validate and open the new .dash file. Do not publish it, change
+sharing, modify database objects, or commit or push to Git.
+```
+
+**Expected output:** A new `revenue_pulse_draft.dash` file that opens as a native dashboard, with a short synthetic-data header and four labeled cards in a row. CoCo should describe the added tiles and report the file-validation result or any unresolved errors. After the tile queries run, the cards should show the baseline measures rather than placeholder numbers; the reference file should remain untouched.
+
+**Check:** Only your new draft file should be added. Open it, select the intended role and warehouse in the dashboard toolbar, and select **Run all**. Compare the cards with the query results from step 2. If your warehouse is not `COMPUTE_WH`, use the warehouse selected during setup.
+
+The `.dash` file stores your dashboard as JSON: its tiles and chart specifications, SQL datasources, filters, and layout. CoCo writes that structure for you, and Workspaces renders it as an interactive dashboard. You do not need to hand-edit the JSON or run the companion's Python generator to follow this workflow.
+
+### 4. Add the Monthly Trend
+
+The cards describe the selected quarter. The trend should reveal when performance changed, so it needs the full two-year context.
+
+```text
+Edit only revenue_pulse_draft.dash. Add a line chart titled
+Monthly Net Revenue below the KPI cards. Plot monthly net revenue
+and revenue target from October 2024 through September 2026.
+Use a chronological date axis, distinguish the two series clearly,
+and include USD in the axis or tooltip. Query the semantic view.
+Keep the KPI cards unchanged and validate the updated file.
+```
+
+**Expected output:** A two-series line chart beneath the cards, with month on the horizontal axis and USD amounts on the vertical axis. A legend or direct labels should distinguish actual revenue from target, so you can see when the two diverge. The dashboard should now combine a quarter-level summary with the longer historical view, without changing the KPI totals.
+
+**Check:** The chart contains 24 monthly points per complete series, ordered by date. It should expose the revenue drop below target in July 2026 rather than plotting only the three Q3 months.
+
+### 5. Add Dashboard Filters
+
+Make the same dashboard useful to a regional lead or product owner without adding separate pages. Be explicit about the trend's exception: it should retain its historical context when Period changes.
+
+```text
+Add Period, Region, Segment, and Product filters to the
+dashboard. Default Period to Q3 2026, including monthly dates
+2026-07-01, 2026-08-01, and 2026-09-01. Leave the other filters empty.
+Populate their options from the demo data rather than invented lists.
+
+Connect the filters to the tile SQL. Period should affect the KPI
+totals; the monthly trend should ignore Period and keep all 24 months.
+Region, Segment, and Product should affect both cards and trend.
+Use the supported dashboard filter syntax. Explain the bindings
+and validate the file without publishing.
+```
+
+**Expected output:** A filter bar containing Period, Region, Segment, and Product, with Q3 selected by default and the other controls unselected. CoCo should explain which queries each filter affects. Selecting a region should redraw both the cards and trend for that region, while changing Period should alter the card totals without shortening the trend's historical axis.
+
+**Check:** Select EMEA. Revenue should fall to approximately $1.8M and attainment to 70.1%; the trend should still span 24 months but show EMEA data. Clear Region and verify that the original totals return. Do not continue if only some cards respond.
+
+## Refine the Dashboard
+
+Continue in the same CoCo conversation and edit only `revenue_pulse_draft.dash`. Each prompt adds one analytical purpose. After each change, inspect the file diff and run the affected tiles; avoid regenerating the whole dashboard to fix one tile.
+
+### 6. Compare Regions
+
+A regional breakdown answers where to look next. Signed variance makes the size and direction of each gap visible.
+
+```text
+Add a bar chart titled Variance to Target by Region.
+For each region, calculate total net revenue minus total target
+from the semantic view. Show signed USD values, a zero reference,
+and readable region labels. Apply all four dashboard filters.
+Keep existing tiles and filters intact, then validate the file.
+```
+
+**Expected output:** A regional bar chart that places each signed variance relative to zero. With no region filter, the bars should let you compare Americas, EMEA, and APAC and identify where the company's gap is concentrated. Labels or tooltips should preserve the dollar amounts so the chart can be reconciled with the total card, not just read as a ranking.
+
+**Check:** With Q3 selected and no other filters, EMEA has the largest regional shortfall. The sum of the regional variances should equal the variance card. Use the displayed signs, not colour alone, to read the result.
+
+### 7. Locate the Weakest Segment
+
+Regions can contain both strong and weak segments. A heatmap shows that distinction without requiring a separate chart for every region.
+
+```text
+Add a heatmap titled Target Attainment by Region and Segment.
+Put regions on one axis and segments on the other.
+Calculate each cell as total net revenue divided by total target.
+Show attainment as a percentage in each cell and include revenue,
+target, and signed variance in the tooltip.
+Use a fixed colour scale from 55% to 120% and a visible legend.
+Apply all four filters and validate the file.
+```
+
+**Expected output:** A region-by-segment grid with an attainment percentage in each cell and a fixed-scale legend beside it. The grid should make the weak EMEA Enterprise result visible while showing that other EMEA segments are near target. Hover details should supply the revenue, target, and variance behind each percentage, giving you a next step beyond colour alone.
+
+**Check:** The unfiltered Q3 heatmap should contain nine region-segment combinations. EMEA Enterprise should be about 57.9%, while Americas Enterprise is about 117%. A fixed scale keeps colours comparable when filters change.
+
+### 8. Show the Accounts
+
+The heatmap identifies a segment; account-level detail lets a reader inspect which records contribute to it. Include the recorded driver so later explanations have evidence beyond a coloured cell.
+
+```text
+Add an account table with customer name, region, segment,
+recorded driver, net revenue, target, signed variance, and attainment.
+Aggregate using the semantic view and apply the dashboard filters.
+Sort the largest negative variances first. Retain all matching rows
+with scrolling or pagination rather than dropping rows with a top-N
+limit. If an account has multiple drivers, show separate rows and
+make that grain clear. Validate the file.
+```
+
+**Expected output:** A sortable or scrollable detail table with the largest negative variances first. Each row should identify the account, its region and segment, and its recorded driver alongside the financial measures. When you narrow the filters, the table becomes the evidence behind the selected heatmap cell; all matching rows should remain accessible rather than disappearing behind a top-N cutoff.
+
+**Check:** Filter to EMEA and Enterprise. The table should expose the zero-revenue account and the other accounts behind the gap. Confirm its summed variance agrees with the filtered card before using it to explain the shortfall.
+
+### 9. Reconcile the Drivers
+
+A waterfall shows how positive and negative contributions combine. Define the total as variance, so the chart cannot accidentally mix revenue amounts with revenue-minus-target amounts.
+
+```text
+Add a waterfall titled Recorded Drivers of Variance.
+Group Q3 net revenue minus target by recorded driver, respecting
+all dashboard filters. Start at zero variance, add each signed
+driver contribution, and end with a separate total-variance bar.
+Include positive offsets as well as negative contributions.
+Use readable labels and USD tooltips. Do not infer causes beyond
+the recorded labels. Validate the file.
+```
+
+**Expected output:** A waterfall whose successive bars move the running variance up or down from zero, followed by a distinct total bar. Driver labels should show the recorded categories, including normal-trading offsets, rather than an AI-inferred explanation. The chart should turn the account-level detail into a visible reconciliation of the gap.
+
+**Check:** In EMEA Enterprise, the approximately -$348.7K, -$258.7K, -$182.0K, and +$10.7K contributions should reconcile to -$778.7K. Clear Region and Segment before moving on.
+
+### 10. Add Comparisons and Sparklines
+
+Once the totals are correct, add historical context to the cards. Keep the selected-period total separate from the monthly sparkline series.
+
+```text
+Enhance the four KPI cards with 12-month sparklines ending at the
+last selected month. Preserve Region, Segment, and Product filters
+in the sparkline queries. Keep each main value as the selected-period
+aggregate, not the last sparkline point.
+
+Add prior-year comparisons for the same selected months to Net
+Revenue, Target Attainment, and Gross Margin. Clearly label relative
+percent changes versus percentage-point changes. Leave comparison
+off for Variance to Target. Keep currency and percentage units clear.
+Use supported native scorecards and validate the file.
+```
+
+**Expected output:** The four cards should retain their main totals and gain small monthly trend lines. Revenue, attainment, and margin should also show clearly labeled comparisons with the same months a year earlier; the variance card should have no prior-year percentage comparison. The result adds context to the existing cards rather than replacing quarter totals with the most recent month's values.
+
+**Check:** Default Q3 revenue remains about $6.9M, with a 0.8% year-over-year increase. The sparklines end in September 2026 and contain 12 months, while the main cards still describe the quarter. Inspect the prior-year dates if the comparisons look wrong.
+
+The completed example below shows the four KPI sparklines and the dashboard header. It also includes the Chart Actions instructions added later in the walkthrough; your dashboard does not need to match its layout exactly.
+
+![Completed Revenue Pulse example with four KPI sparklines and a Chart Actions tile](assets/dashboard-overview.png)
+
+### 11. Add Optional Detail Charts
+
+The table and waterfall already answer the main question. These two optional refinements bring your version closer to the companion's visual design. Send them separately so each can be reviewed on its own.
+
+```text
+Add a donut titled Variance by Recorded Driver using the same
+filtered driver aggregates as the waterfall. Size slices by absolute
+variance, but show the signed USD value in each label or tooltip.
+Add a note that slice sizes are not percentages of the net shortfall.
+Keep labels readable; use a legend if in-ring labels do not fit.
+Validate the file.
+```
+
+**Expected output:** A donut that compares the magnitudes of recorded-driver variances, with readable labels or a legend and signed amounts in labels or tooltips. A nearby note should explain the absolute-area encoding. The donut complements the waterfall by showing relative magnitudes; it does not replace the signed reconciliation.
+
+**Check:** A positive contribution must remain positive in its label, even though slice area is nonnegative. Do not use the donut's area to claim how much of the net gap a driver explains.
+
+In the completed example, the donut and waterfall sit side by side: one compares driver magnitudes, while the other shows how their signed contributions combine.
+
+![Completed example's recorded-driver donut beside the variance waterfall](assets/driver-variance-breakdown.png)
+
+```text
+Add an account bubble chart with total target on the horizontal
+axis and attainment on the vertical axis. Use net revenue for
+bubble size and region for colour. Add a 100% attainment reference
+line and account names in tooltips. Apply all dashboard filters.
+Validate the file and preserve the existing table and charts.
+```
+
+**Expected output:** A scatter-style view of accounts, with larger targets farther right, higher attainment farther up, and revenue represented by bubble size. The 100% line should separate accounts meeting target from those missing it. Region colours and account tooltips should make it possible to connect a bubble to its table row and spot large accounts with weak attainment.
+
+**Check:** Accounts below the reference line are behind target. Tooltips should let you locate the same accounts in the table; zero-revenue accounts may have zero-sized bubbles, so retain the table for completeness.
+
+### 12. Add Optional Chart Actions
+
+First confirm which interactions are supported in your account. The companion includes brushing and click-to-filter, while the private-preview documentation may describe a narrower rollout. If an action is unavailable, keep the filter-chip workflow; do not advertise a control that was not created and tested.
+
+```text
+Check whether native trend brushing, bar click-to-filter, and
+heatmap click-to-filter are supported for this dashboard.
+Explain what is available and what is not. Do not edit the file yet,
+and do not substitute custom JavaScript for unsupported actions.
+```
+
+**Expected output:** A capability summary for brushing, bar selections, and heatmap selections, with the evidence for each conclusion and any uncertainty. No file should change. If CoCo cannot establish whether an action is supported, it should say that rather than claiming success or building an unsupported substitute.
+
+**Check:** Distinguish confirmed availability from assumptions. Keep ordinary filter chips for unsupported or unverified actions; a capability summary is not a completed interaction test.
+
+For supported actions, send these prompts one at a time:
+
+```text
+Add a brush action to Monthly Net Revenue. Dragging a month range
+should filter the trend and other data tiles to those months,
+temporarily replacing Period. Show a clearable filter chip named
+Months picked on trend. Clearing it should restore the original
+Period and the trend's full 24-month context. Validate the file.
+```
+
+**Expected output:** On supported accounts, the trend should accept a dragged month range and display a **Months picked on trend** selection chip. While that selection is active, affected tiles should use the brushed months instead of the ordinary Period selection. Removing the chip should return the dashboard to its previous period and the trend to its full historical context.
+
+**Check:** Brush a range outside Q3. Tiles should show that range rather than an empty intersection with Q3. Clear the brush and verify that the Q3 totals return.
+
+```text
+Add click-to-filter to Variance to Target by Region. Selecting a
+region bar should filter the other data tiles but leave the source
+region chart available for comparison. Show a clearable selection
+chip. Separately, when Region has one selection, show segment bars
+in that chart; with one Region and one Segment, show account bars.
+Keep the selection grain and target scopes consistent with the
+displayed bars. Validate the file.
+```
+
+**Expected output:** On supported accounts, selecting a bar should create a visible selection and update the other tiles while keeping the source bars available for comparison. Separately, the Region and Segment dropdowns should determine whether that source chart shows regions, segments, or accounts. CoCo should explain those distinct behaviours so a click is not mistaken for self-drilling.
+
+**Check:** A bar click must not remove the other bars from its own source chart. Clear its selection before testing the Region and Segment dropdowns for deeper breakdowns.
+
+```text
+Add click-to-filter to Target Attainment by Region and Segment.
+Selecting a cell should filter the other data tiles by both its
+region and segment while leaving the source heatmap unchanged.
+Expose clearable selections and validate the file.
+```
+
+**Expected output:** On supported accounts, a heatmap-cell selection should apply both its region and segment to the other data tiles. Clearable selections should indicate which slice is active, while the source heatmap retains its comparison cells. The reader should be able to focus the account and driver views without losing the broader grid.
+
+**Check:** Select EMEA Enterprise, confirm the other tiles show that slice, and then clear the selections. The full heatmap should remain available throughout.
+
+### 13. Explain the Controls
+
+Finish with a compact layout and a short guide for the reader. Explain only interactions that survived your checks.
+
+```text
+Arrange the dashboard as one page: header and a short
+Try Chart Actions text tile at the top, four KPI cards below,
+then trend and regional views, followed by driver and account detail.
+In the text tile, describe only the actions we verified and how to
+clear their selections. If no chart actions are supported, title it
+Try Dashboard Filters instead and explain the filter chips.
+Keep labels readable and chart colours consistent. Preserve all
+SQL, filter bindings, and tile IDs while adjusting layout.
+Validate the file; do not publish or change sharing.
+```
+
+**Expected output:** A reorganized single-page dashboard that moves from summary to trend, then to regional, driver, and account detail. A compact text tile should tell readers which controls they can use and how to reset them. This should be a presentation change with the existing query logic and tile identities preserved, not a newly rebuilt dashboard.
+
+**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work.
+
+## Validate the Dashboard
+
+### 14. Audit the Generated Result
+
+Separate a file-format check from a data check. A valid `.dash` can still contain a query that aggregates at the wrong grain or ignores a filter.
+
+```text
+Audit revenue_pulse_draft.dash without changing it.
+Validate its native file format and inspect every datasource SQL.
+Confirm that analytical queries use
+REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW,
+that ratios use aggregated amounts, and that labels match units.
+Check Q3 2026 date boundaries, prior-year comparison dates,
+filter bindings, and any chart-action scopes.
+Run read-only comparison queries for all regions, EMEA, and
+EMEA Enterprise. Report actual totals and any discrepancies.
+List what you checked from source and what still needs a UI test.
+Do not alter data, grants, files, or published artifacts.
+```
+
+**Expected output:** An audit summary separating file-format findings, SQL and filter-binding findings, and numerical comparisons for the three requested slices. It should show the actual query results, identify discrepancies, and list interaction checks still requiring a browser test. Expect unresolved issues to be reported plainly; an audit should not silently repair the file or label untested controls as working.
+
+**Check:** Compare the results with the figures in **Explore with Filters**. In the UI, test each filter alone, combine Region and Segment, then clear them. Test a combination that returns no data: tiles should show an empty state rather than retaining old values. Restore Q3 and clear all other selections when finished.
+
+If you find a problem, give CoCo the observed behaviour and one expected outcome instead of asking it to rebuild everything:
+
+```text
+My dashboard's Net Revenue card does not change when
+I select EMEA, although the account table does. Inspect that card's
+datasource and filter bindings. Fix only the affected card or binding,
+preserve the other tiles and IDs, and validate the file. Explain
+the change so I can rerun the EMEA check. Do not change source data.
+```
+
+**Expected output:** If the reported defect is present, CoCo should explain the faulty query or binding and make a limited edit to that card or its filter connection. Its response should identify what changed and report validation results, leaving other tiles and source data untouched. If it cannot reproduce the issue, it should report that and ask for the missing observation instead of guessing at a fix.
+
+**Check:** This is an example repair prompt, not a known defect. Replace the observation with what you actually see, rerun the affected check, and confirm that clearing the filter restores the baseline.
+
+### Compare with the Reference
+
+Open `dashboards/revenue_pulse.dash` to compare the completed example with your dashboard. Its toolbar has its own role and warehouse; select the intended values before **Run all**. Screenshots throughout this guide show the completed example, not output guaranteed by the prompts. To follow their appearance exactly, use the example for the remaining exploration steps; otherwise continue with your validated dashboard.
 
 ## Explore with Filters
+
+Use this section to check your dashboard against the completed example. The numerical checks use the same synthetic data, Q3 period, and stated filters. Skip optional charts or actions you did not add, or open the example to inspect them.
 
 ### Review the Q3 Overview
 
 With the dashboard open, select **Run all**.
-
-![Revenue Pulse default Q3 view with the top-right Try Chart Actions tile and four KPI sparklines](assets/dashboard-overview.png)
 
 The Variance to Target card abbreviates its value to **−$1M** at zero decimal places. The underlying shortfall is approximately **−$1.09M**, visible with more precision in the breakdowns. The attainment and margin card values are percentages, as their subtitles indicate.
 
@@ -405,9 +738,7 @@ With the default Q3 2026 period, the KPI row shows net revenue of **$6.9M**, up 
 
 In the heatmap, the darkest red cell is **EMEA Enterprise at 57.9%**. Five more cells miss target: APAC SMB (65.0%), APAC Mid-market (72.0%), Americas Mid-market (78.0%), Americas SMB (85.0%), and APAC Enterprise (88.0%). EMEA Mid-market and SMB are on target, and Americas Enterprise (117.0%) is the only cell well above it.
 
-The variance waterfall starts at target and walks to the total gap. Normal trading adds $376.7K, and discounts and credits (−$351.6K), contract downsize (−$677.1K), and renewal delay (−$438.1K) take it down to **−$1.09M**.
-
-![Q3 recorded-driver donut with signed in-ring labels beside the variance waterfall](assets/driver-variance-breakdown.png)
+The driver contributions reconcile to the total variance. Normal trading adds $376.7K, and discounts and credits (−$351.6K), contract downsize (−$677.1K), and renewal delay (−$438.1K) take it down to **−$1.09M**.
 
 In the bubble chart, most Americas Enterprise accounts and some EMEA Mid-market and SMB accounts sit on or above the dashed 100% line, and most APAC and Americas accounts sit below it. Five EMEA Enterprise accounts with the largest targets sit well below it, and one of them is at 0%.
 
@@ -433,6 +764,8 @@ Add **Segment = Enterprise** and look at the account table. One account has zero
 Together these sum to the segment's −$778.7K gap. Chart clicks appear as filter chips (**Drill: region path**, **Months picked on trend**); clear a chip to drill back up. Clear the filters before you publish.
 
 ### Chart Actions
+
+These actions are present in the completed example. On your dashboard, use only the actions you added and verified in step 12; ordinary filter chips remain the fallback.
 
 You can also filter by clicking the charts themselves. The top-right **Try Chart Actions** tile is a reminder of the three actions. A region-bar click filters the other charts without drilling its own source chart; to show segment and account bars there, use the Region and Segment filter chips.
 
@@ -478,6 +811,20 @@ GRANT ROLE DASHBOARD_DEMO_SALES_OPS TO USER <name>;
 
 ### Publish as an Artifact
 
+Before publishing, choose which file you intend to share: your validated dashboard or the completed example. Check the open file's path and its data, since both may be titled Revenue Pulse. Publishing is a deliberate UI action, not part of the generation prompts. You can ask CoCo to review the file first:
+
+```text
+Review revenue_pulse_draft.dash for publication without editing
+or publishing it. Check for missing queries, unresolved errors,
+misleading units, hardcoded KPI values, and instructions for actions
+that are not configured. Summarize remaining checks, including a
+viewer-role test. Do not grant access or change any sharing settings.
+```
+
+**Expected output:** A publication-readiness review identifying missing queries, unresolved errors, misleading labels, or instructions for absent controls. It should distinguish what can be checked from the file from what still requires execution or an intended-viewer test. The dashboard should remain unpublished, with sharing and grants unchanged.
+
+**Check:** Replace the filename in that prompt if you chose the reference. Resolve reported problems and restore default filters before continuing. This review does not replace checking access as the intended viewer.
+
 In the dashboard toolbar, choose **Share > Publish as artifact**. The dialog notes that viewers run the dashboard with their own privileges ([caller's rights](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards)), not the owner's. The role's grants decide what each viewer sees.
 
 Add `DASHBOARD_DEMO_SALES_OPS` with **Can view** access. When this guide was tested, the role search box sometimes already contained `PUBLIC`. Clear it so the dashboard is shared only with the sales-ops role. Then select **Publish**.
@@ -492,7 +839,7 @@ After publishing, make edits in the Workspaces editor and use **Publish changes*
 
 ### Open the Artifact
 
-In Snowflake CoWork, open **Artifacts**, select the **All** tab, and open **Revenue Pulse**. It shows the same tiles and filters as in Workspaces, with a follow-up box below. The docs describe what viewers can and can't do here in [Consuming a dashboard in Cowork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
+In Snowflake CoWork, open **Artifacts**, select the **All** tab, and open the **Revenue Pulse** dashboard you published. If you published more than one version, use the link copied from the intended dashboard's Share dialog to open the correct artifact. It shows the published tiles and filters, with a follow-up box below. The docs describe what viewers can and can't do here in [Consuming a dashboard in Cowork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
 
 ![Current Revenue Pulse artifact in CoWork with KPI sparklines and the follow-up box](assets/cowork-artifact.png)
 
@@ -506,13 +853,13 @@ Publishing saved the dashboard as an artifact, so you can ask follow-up question
 Why is EMEA Enterprise behind target in Q3 2026? Quantify the drivers.
 ```
 
-CoWork opens a chat with the dashboard docked beside it. It answers from the dashboard's executed tile results: the heatmap and account table datasources.
+**Expected output:** A CoWork conversation with the dashboard docked beside it and a quantified explanation of the EMEA Enterprise shortfall. With the necessary tile results available, the answer should state the Q3 revenue, target, attainment, and gap, then break that gap into signed recorded-driver contributions. This generates an explanation in chat, not an edited dashboard. The reference response below used the heatmap and account table results; if your dashboard lacks that detail, expect an explicit explanation of what evidence is unavailable.
 
 ![Fresh CoWork follow-up showing 57.9% EMEA Enterprise attainment and the current dashboard docked beside it](assets/cowork-follow-up.png)
 
 The chat runs on the left, and the dashboard stays docked on the right, so you can check the answer against the tiles. The captured response reports $1.07M of net revenue against a $1.85M target, a −$778.7K shortfall at 57.9% attainment. It separates the recorded renewal delay at one account that booked $0 from contract downsizes at two accounts and discounts and service credits at two more, including the offset from the account above target. Responses can vary; compare their figures with the expected data breakdown below and avoid treating recorded labels as proof of causation.
 
-For the companion's synthetic data, the expected answer is:
+**Check:** For the companion's synthetic data, compare the answer with these expected figures:
 
 - A $778.7K shortfall at 57.9% attainment
 - Renewal delay: −$348.7K
@@ -524,13 +871,63 @@ The parts sum to the total. Because the drivers come from `RECORDED_DRIVER`, the
 
 For questions beyond what the tiles hold, open the Revenue Advisor agent in CoWork. It queries the semantic view directly. Check its answer against the breakdown above using the same period and filters; the dashboard follow-up does not automatically invoke this agent.
 
+### Ask Smaller Follow-ups
+
+For a more gradual exploration, start a conversation from the dashboard with a scoped question, then ask for detail in that conversation. These are suggested follow-ups, not additional captured responses.
+
+```text
+For Q3 2026, which region and segment has the largest negative
+variance to target? State its net revenue, target, variance,
+and attainment, and identify the dashboard results you used.
+```
+
+**Expected output:** A focused answer naming the region-segment combination with the largest dollar shortfall, followed by its four financial measures and the dashboard evidence used. This narrows the investigation to one slice before asking for a causal explanation. If the required results are unavailable, the response should identify that gap rather than assert a ranking.
+
+**Check:** Identify the slice by negative dollar variance, not just the lowest attainment percentage. The expected largest region-segment gap is EMEA Enterprise.
+
+```text
+For EMEA Enterprise in the same quarter, break the variance down
+by recorded driver. Include positive offsets and show whether
+the contributions sum to the total gap. If the dashboard results
+do not contain enough detail, say what is missing rather than guess.
+```
+
+**Expected output:** A driver-by-driver table or concise explanation including the negative contributions, positive offset, and their signed total. The response should state whether the parts reconcile to the segment gap. If the tile results lack driver detail, expect a description of the missing evidence instead of invented contributions.
+
+**Check:** Compare the signed contributions with the table in **Focus on Enterprise Accounts**. An answer should not invent detail missing from the available tile results.
+
+```text
+Which parts of that explanation are directly supported by recorded
+data, and which would be hypotheses? What additional evidence would
+you need to assess whether the delayed renewal will recover in Q4?
+Do not forecast beyond the available data.
+```
+
+**Expected output:** A distinction between what the recorded data supports and what remains hypothetical, followed by examples of evidence needed for a Q4 assessment, such as renewal status or later bookings. It should explain why a renewal-delay label alone cannot establish recovery and avoid presenting a forecast from data that ends in September.
+
+**Check:** The answer should acknowledge that the dataset ends in September 2026 and that recorded labels do not prove future recovery.
+
 ## Clean Up
+
+Cleanup is optional until you finish exploring, and destructive once executed. If you want a final review, paste the cleanup SQL below into a file and ask CoCo:
+
+```text
+Review this tutorial cleanup SQL without executing or changing it.
+List exactly which objects it would remove. Explain which dashboard
+artifacts and workspace files require separate manual cleanup.
+Flag anything that could affect work outside this tutorial.
+Do not drop objects, delete files, revoke grants, or publish changes.
+```
+
+**Expected output:** A teardown review listing the database and its contained objects, plus the separately named role and API integration. It should identify dashboard artifacts and workspace files that need separate review, and flag the risk of deleting unrelated work if these names have been reused. This prompt should produce an explanation only; all resources should still exist afterward.
+
+**Check:** Confirm that the named database, role, integration, workspace, and artifacts belong only to this tutorial before performing the steps below. Do not rely on the prompt to authorize deletion.
 
 Remove the published dashboard and the workspace first:
 
 1. Open the dashboard's **Share** dialog and remove every role from **Who has access**.
 2. Delete the artifact from CoWork (**Artifacts**, open it, **More options > Delete**). During testing, the CoWork delete returned an error. With every role removed, the artifact stays visible only to you.
-3. In **Workspaces**, switch to the Git workspace, select **...** (More options) next to its name, select **Delete**, and confirm.
+3. In **Workspaces**, delete only the draft file or dedicated tutorial workspace you created. If the Git workspace was created solely for this tutorial, select **...** (More options) next to its name, select **Delete**, and confirm. Do not delete a workspace that contains unrelated work. If you published both dashboard versions, review and remove each tutorial artifact separately.
 
 Then run `sql/99_cleanup.sql`. Paste it into your SQL file rather than running it from the repository, because it drops the database that holds the Git repository object. Dropping `REVENUE_PULSE_DB` removes the schema, tables, stage, Git repository, semantic view, and agent. The script also drops the viewer role and the API integration, which sit outside the database. No script runs this file for you.
 
@@ -551,9 +948,11 @@ DROP API INTEGRATION IF EXISTS REVENUE_PULSE_GIT_API;
 Congratulations! You've successfully built a native Workspaces dashboard on a governed semantic view, published it to a single least-privilege role, and asked why the numbers moved from CoWork. The semantic layer, the agent, and the dashboard now live in one place. Every tile queries the same semantic view the agent uses, so both use the same metric definitions and access controls.
 
 ### What You Learned
+- Build a native dashboard with Snowsight CoCo's `/dashboard` skill, then refine it with one focused prompt at a time
+- Check generated SQL and UI behaviour separately; compare filtered totals with a reproducible reference
 - Keep semantic view metrics additive and compute ratios after aggregation, so filtered totals stay correct
-- Bind dashboard filters to SQL datasources with `{{ filter('ID') }}` macros
-- Shift months by one year to get year-over-year KPIs under identical filters
+- Ask CoCo to connect dashboard filters to the relevant tile queries
+- Compare the same months year over year under identical filters
 - Publish dashboards to a specific role. Viewers run them with caller's rights
 - Separate recorded drivers from hypotheses when explaining a variance
 
