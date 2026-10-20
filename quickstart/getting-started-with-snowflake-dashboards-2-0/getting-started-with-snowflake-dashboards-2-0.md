@@ -87,7 +87,7 @@ The `/dashboard` skill was confirmed to load in Snowsight during a read-only che
 
 #### Review the Setup SQL
 
-Use the supplied SQL for setup so the examples below share the same object names and synthetic data. CoCo can explain each script before you run it; it does not need to invent a new setup. After pasting the script below into your SQL file, but before running it, use this prompt in the Snowsight CoCo panel with that file open:
+Use the supplied SQL for setup so the examples below share the same object names and synthetic data. CoCo can explain each script before you run it; it does not need to invent a new setup. After pasting the script below into your SQL file, but before running it, use this prompt in the Snowsight CoCo panel with that file open.
 
 **Prompt:**
 
@@ -279,7 +279,7 @@ Each `COPY INTO` has its own [load-result table](https://docs.snowflake.com/en/u
 
 ### Verify the Loaded Data
 
-If you need help interpreting the load, ask CoCo to check it without reloading the tables:
+If you need help interpreting the load, ask CoCo to check it without reloading the tables.
 
 **Prompt:**
 
@@ -368,7 +368,7 @@ The `AI_SQL_GENERATION` clause gives Cortex Analyst the intended meaning of "Q3"
 
 ### Understand the Metric Definitions
 
-Before moving on, use a read-only explanation prompt to connect the model to the questions your dashboard will answer:
+Before moving on, use a read-only explanation prompt to connect the model to the questions your dashboard will answer.
 
 **Prompt:**
 
@@ -433,7 +433,7 @@ EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branc
 
 ### Understand the Agent's Role
 
-Revenue Advisor is a separate way to query the semantic view, not a prerequisite for dashboard follow-up chat. To understand that boundary, ask CoCo:
+Revenue Advisor is a separate way to query the semantic view, not a prerequisite for dashboard follow-up chat. Ask CoCo to explain the distinction before continuing.
 
 **Prompt:**
 
@@ -746,7 +746,7 @@ and do not substitute custom JavaScript for unsupported actions.
 
 #### Brush a Time Range
 
-If brushing is supported, start by connecting a selected month range to the dashboard:
+If brushing is supported, start by connecting a selected month range to the dashboard.
 
 **Prompt:**
 
@@ -847,7 +847,7 @@ Do not alter data, grants, files, or published artifacts.
 
 #### Repair a Specific Issue
 
-If you find a problem, give CoCo the observed behaviour and one expected outcome instead of asking it to rebuild everything:
+If you find a problem, give CoCo the observed behaviour and one expected outcome instead of asking it to rebuild everything.
 
 **Prompt:**
 
@@ -960,7 +960,7 @@ GRANT ROLE DASHBOARD_DEMO_SALES_OPS TO USER <name>;
 
 #### Review Publication Readiness
 
-Before publishing, choose which file you intend to share: your validated dashboard or the completed example. Check the open file's path and its data, since both may be titled Revenue Pulse. Publishing is a deliberate UI action, not part of the generation prompts. You can ask CoCo to review the file first:
+Before publishing, choose which file you intend to share: your validated dashboard or the completed example. Check the open file's path and its data, since both may be titled Revenue Pulse. Publishing is a deliberate UI action, not part of the generation prompts. You can ask CoCo to review the file first.
 
 **Prompt:**
 
@@ -1000,7 +1000,7 @@ The artifact opens with the same filter chips and KPI tiles you built in Workspa
 
 ### Ask a Follow-up Question
 
-Publishing saved the dashboard as an artifact, so you can ask follow-up questions about the data it shows. Each follow-up starts a new conversation that carries the artifact's data and context, and it stays private to you ([Artifacts in Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork/artifacts)). In the follow-up box, ask:
+Publishing saved the dashboard as an artifact, so you can ask follow-up questions about the data it shows. Each follow-up starts a new conversation that carries the artifact's data and context, and it stays private to you ([Artifacts in Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork/artifacts)). Enter the following question in the follow-up box.
 
 **Prompt:**
 
@@ -1078,7 +1078,7 @@ Do not forecast beyond the available data.
 
 ### Review the Cleanup Scope
 
-Cleanup is optional until you finish exploring, and destructive once executed. If you want a final review, paste the cleanup SQL below into a file and ask CoCo:
+Cleanup is optional until you finish exploring, and destructive once executed. If you want a final review, paste the cleanup SQL below into a file and ask CoCo to explain its scope and risks.
 
 **Prompt:**
 
