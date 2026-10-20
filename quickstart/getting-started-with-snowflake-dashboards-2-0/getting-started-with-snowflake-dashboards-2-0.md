@@ -1,12 +1,12 @@
 author: Chanin Nantasenamat
-id: build-a-revenue-dashboard-with-snowflake-workspaces
+id: getting-started-with-snowflake-dashboards-2-0
 categories: snowflake-site:taxonomy/solution-center/certification/quickstart, snowflake-site:taxonomy/product/analytics, snowflake-site:taxonomy/product/ai
 language: en
 summary: Get started with Snowflake Dashboards 2.0 using step-by-step Cortex Code prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
 environments: web
 status: Published
 feedback link: https://github.com/Snowflake-Labs/sfquickstarts/issues
-fork repo link: https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces
+fork repo link: https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0
 
 # Getting Started with Snowflake Dashboards 2.0
 
@@ -65,7 +65,7 @@ An end-to-end revenue workflow in which every number comes from one definition:
 - Access to Dashboards 2.0, Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account. At the time of this revision, the [dashboard documentation](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) labels the feature private preview; confirm enrollment with your account team
 - A role with the `MANAGE ACCESS ON DASHBOARD ARTIFACTS` privilege, which is needed to publish dashboards as artifacts and choose who can view them. It is [granted to `PUBLIC` by default](https://docs.snowflake.com/en/release-notes/bcr-bundles/un-bundled/bcr-manage-access-dashboard-artifacts) unless your administrator revoked it
 
-Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
+Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
 
 ### How to Follow Along
 
@@ -122,7 +122,7 @@ CREATE API INTEGRATION IF NOT EXISTS REVENUE_PULSE_GIT_API
 
 CREATE GIT REPOSITORY IF NOT EXISTS REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO
   API_INTEGRATION = REVENUE_PULSE_GIT_API
-  ORIGIN = 'https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces.git';
+  ORIGIN = 'https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0.git';
 
 ALTER GIT REPOSITORY REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO FETCH;
 
@@ -450,7 +450,7 @@ CoWork conversation started from a dashboard artifact.
 Create a workspace from the companion repository so you can keep the completed example beside your own draft:
 
 1. In **Workspaces**, select **+** (Create new workspace) at the top of the file tree, then select **Git workspace**.
-2. For **Repository URL**, paste `https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces`. The workspace name fills in from the URL.
+2. For **Repository URL**, paste `https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0`. The workspace name fills in from the URL.
 3. For **API integration**, select `REVENUE_PULSE_GIT_API`. The dialog may preselect a different integration, so check this field.
 4. Select **Public repository**, then select **Create**.
 
