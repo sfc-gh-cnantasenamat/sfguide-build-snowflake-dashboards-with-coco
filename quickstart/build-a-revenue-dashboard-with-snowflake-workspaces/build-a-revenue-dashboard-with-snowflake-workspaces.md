@@ -440,11 +440,11 @@ You can also filter by clicking the charts themselves. The top-right **Try Chart
 
 Clear **Months picked on trend** to restore the original Period selection and the full trend context.
 
-**2. Click a bar.** Click a bar in **Variance to Target by Region** to filter the rest of the dashboard to that region:
+**2. Filter by region.** Select a bar in **Variance to Target by Region** to show that region's results in the other tiles.
 
 The **Drill: region path** chip records the selected region. Clear that chip to remove the chart-click filter. The source region chart stays outside its own click targets.
 
-**3. Click a heatmap cell.** Click a cell in the heatmap to focus on that region and segment combination:
+**3. Focus on a region and segment.** Select a heatmap cell to filter the other tiles to that combination.
 
 The heatmap sends Region and Segment filters to the other scopes, leaving its own cells available for comparison. Clear the resulting filter chips before trying another action.
 
