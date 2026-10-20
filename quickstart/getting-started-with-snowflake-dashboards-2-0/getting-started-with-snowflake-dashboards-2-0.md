@@ -44,11 +44,9 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-A single-page revenue dashboard with KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details. Optional donut and bubble charts add detail.
+You'll build Revenue Pulse, a single-page revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. Brush the trend or click a region bar, and the related charts filter to match. Each build step shows a close-up of the chart it adds, and because Cortex Code generates the layout from your prompts, your version may look a little different.
 
-Here's where you'll end up. On one page, Revenue Pulse takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. Brush the trend or click a region bar, and the related charts filter to match. Each build step shows a close-up of the chart it adds, and because Cortex Code generates the layout from your prompts, your version may look a little different.
-
-![Completed Revenue Pulse dashboard from summary cards through account details, including the optional donut and bubble charts](assets/dashboard-complete.png)
+![Completed Revenue Pulse dashboard from summary cards through account details, including the driver donut and account bubble charts](assets/dashboard-complete.png)
 
 The architecture below shows how the dashboard and Revenue Advisor use the shared semantic view, and how viewers explore the published artifact in CoWork.
 
@@ -494,7 +492,7 @@ the recorded labels. Validate the file.
 
 **Check:** In EMEA Enterprise, the approximately -$348.7K, -$258.7K, -$182.0K, and +$10.7K contributions should reconcile to -$778.7K. Clear Region and Segment before moving on.
 
-The completed example below shows the unfiltered Q3 waterfall on the right. The optional donut on the left is added in step 11.
+The completed example below shows the unfiltered Q3 waterfall on the right. The donut on the left is added in step 11.
 
 ![Completed example's recorded-driver donut beside the variance waterfall](assets/driver-variance-breakdown.png)
 
@@ -525,9 +523,9 @@ The completed example below shows the four KPI sparklines and the dashboard head
 
 ![Completed Revenue Pulse example with four KPI sparklines and a Chart Actions tile](assets/dashboard-overview.png)
 
-### 11. Add Optional Detail Charts
+### 11. Add Detail Charts
 
-The table and waterfall already answer the main question. These two optional refinements bring your version closer to the companion's visual design. Send them separately so each can be reviewed on its own.
+The waterfall and table show what moved; these two charts show how much and where. The donut compares driver magnitudes, and the bubble chart places each account by target and attainment. Send them separately so each can be reviewed on its own.
 
 #### Compare Driver Magnitudes
 
@@ -564,11 +562,11 @@ Validate the file and preserve the existing table and charts.
 
 ![Completed reference Q3 account bubbles, colored by region and sized by revenue, with a dashed 100% attainment line](assets/account-attainment-bubbles.png)
 
-### 12. Add Optional Chart Actions
+### 12. Add Chart Actions
 
 #### Check Available Interactions
 
-First confirm which interactions are supported in your account. The companion includes brushing and click-to-filter, while the private-preview documentation may describe a narrower rollout. If an action is unavailable, keep the filter-chip workflow; do not advertise a control that was not created and tested.
+Chart actions turn the charts themselves into filters: brush a month range on the trend, or click a region bar or heatmap cell, and the other tiles follow. They are how readers move from the Q3 headline to the slice behind it without touching the header filters. Because Dashboards 2.0 is in preview, first confirm the actions are enabled in your account. The companion includes brushing and click-to-filter; if your account lacks one, keep the filter chips for that view and don't advertise a control you haven't created and tested.
 
 **Prompt:**
 
@@ -585,7 +583,7 @@ and do not substitute custom JavaScript for unsupported actions.
 
 #### Brush a Time Range
 
-If brushing is supported, start by connecting a selected month range to the dashboard.
+Start by connecting a selected month range to the dashboard.
 
 **Prompt:**
 
@@ -714,7 +712,7 @@ Open `dashboards/revenue_pulse.dash` to compare the completed example with your 
 
 ## Explore with Filters
 
-Use this section to check your dashboard against the completed example. The numerical checks use the same synthetic data, Q3 period, and stated filters. Skip optional charts or actions you did not add, or open the example to inspect them.
+Use this section to check your dashboard against the completed example. The numerical checks use the same synthetic data, Q3 period, and stated filters. If your account doesn't support one of the chart actions from step 12, skip that check or open the completed example to try it.
 
 ### Review the Q3 Overview
 
@@ -751,7 +749,7 @@ Together these sum to the segment's −$778.7K gap. Clear Region and Segment to 
 
 ### Chart Actions
 
-On your dashboard, test only actions added and verified in step 12; ordinary filters remain the fallback. The completed example includes these actions:
+Test each action you added in step 12; for any your account doesn't support, the header filters remain the fallback. The completed example includes these actions:
 
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
