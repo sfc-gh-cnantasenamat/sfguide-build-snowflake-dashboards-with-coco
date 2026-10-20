@@ -83,7 +83,11 @@ That variability does not make incorrect totals acceptable. This guide loads fix
 
 ### Connect Snowflake to the Companion Repository
 
+#### Review the Setup SQL
+
 Use the supplied SQL for setup so the examples below share the same object names and synthetic data. CoCo can explain each script before you run it; it does not need to invent a new setup. After pasting the script below into your SQL file, but before running it, use this prompt in the Snowsight CoCo panel with that file open:
+
+**Prompt:**
 
 ```text
 Review this setup SQL without executing it or changing anything.
@@ -96,6 +100,8 @@ my own warehouse. Do not execute statements or grant permissions.
 **Expected output:** A plain-language review of the setup script, identifying the demo database and schema, Git integration and repository, and any warehouse references. CoCo should distinguish operations that create objects from those that affect existing ones, and explain the permissions they need. The output is an explanation only; nothing should have been created or executed.
 
 **Check:** Review the proposed operations yourself. Use only a dedicated demo database, and resolve warehouse or privilege issues before executing the supplied SQL. A chat explanation is not evidence that setup has run.
+
+#### Run the Connection Script
 
 In Snowsight, open **Projects > Workspaces**. In **My Workspace**, select **+ Add new > SQL File**. Set the role to `ACCOUNTADMIN` and the warehouse to `COMPUTE_WH`, then paste and run this script (it is also `sql/00_bootstrap.sql` in the repository):
 
@@ -123,6 +129,21 @@ ALTER GIT REPOSITORY REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO FETCH;
 LS @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/;
 ```
 
+**Expected SQL output:** The final `LS` statement lists these six scripts. This ASCII preview shows only the `name` column, shortened to filenames without the repository path. The actual [Git file listing](https://docs.snowflake.com/en/developer-guide/git/git-operations) also includes size, hashes, and modification time, which depend on the fetched revision. Output previews in this guide describe expected successful results; they are not captures from a new execution.
+
+```plaintext
++----------------------+
+| name                 |
++----------------------+
+| 00_bootstrap.sql     |
+| 01_setup.sql         |
+| 02_semantic_view.sql |
+| 03_agent.sql         |
+| 04_viewer_role.sql   |
+| 99_cleanup.sql       |
++----------------------+
+```
+
 The last statement lists the scripts in the repository. Every object in this guide lives in `REVENUE_PULSE_DB`, so you can remove them all with one statement at the end. The API integration and the viewer role sit outside the database and are dropped separately.
 
 If your warehouse isn't `COMPUTE_WH`, use your own warehouse in the SQL file. Later, instead of running `sql/03_agent.sql` and `sql/04_viewer_role.sql` from the repository, copy each one from the repository into your SQL file, replace `COMPUTE_WH` with your warehouse, and run it there.
@@ -139,6 +160,16 @@ Run `sql/01_setup.sql` straight from the repository:
 
 ```sql
 EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/01_setup.sql;
+```
+
+**Expected SQL output:** [`EXECUTE IMMEDIATE FROM`](https://docs.snowflake.com/en/sql-reference/sql/execute-immediate-from#returns) returns the result of the last statement in the script when execution succeeds. Here, that is the row-count query:
+
+```plaintext
++-----------+----------+--------------+
+| CUSTOMERS | PRODUCTS | REVENUE_ROWS |
++-----------+----------+--------------+
+|        54 |        3 |         3888 |
++-----------+----------+--------------+
 ```
 
 The script creates the tables and an internal stage, copies the CSVs from the Git repository into the stage with `COPY FILES`, and loads each table with `COPY INTO ... MATCH_BY_COLUMN_NAME`. It truncates each table before loading. Run it only in the dedicated demo database: rerunning it replaces any data already in these tables.
@@ -200,9 +231,51 @@ SELECT
   (SELECT COUNT(*) FROM REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_MONTHLY) AS REVENUE_ROWS;
 ```
 
-The final query should return 54 `CUSTOMERS`, 3 `PRODUCTS`, and 3,888 `REVENUE_ROWS`.
+**Expected SQL output:** The final `SELECT` in the expanded script returns the same row counts:
+
+```plaintext
++-----------+----------+--------------+
+| CUSTOMERS | PRODUCTS | REVENUE_ROWS |
++-----------+----------+--------------+
+|        54 |        3 |         3888 |
++-----------+----------+--------------+
+```
+
+If you inspect the individual load statements, [`COPY FILES`](https://docs.snowflake.com/en/sql-reference/sql/copy-files) returns a separate file list. Its default detailed output should contain the three CSVs:
+
+**Expected SQL output (`COPY FILES`):**
+
+```plaintext
++---------------------+
+| file                |
++---------------------+
+| customers.csv       |
+| products.csv        |
+| revenue_monthly.csv |
++---------------------+
+```
+
+Each `COPY INTO` has its own [load-result table](https://docs.snowflake.com/en/user-guide/tutorials/snowflake-in-20minutes). The following preview combines the three separate results for comparison and shows only the file, status, row counts, and error count. File paths are shortened to filenames; additional error-detail columns are omitted. These are expected values for a successful load of the supplied CSVs, not evidence that your load succeeded.
+
+**Expected SQL output (`COPY INTO`, combined preview):**
+
+```plaintext
++---------------------+--------+-------------+-------------+-------------+
+| file                | status | rows_parsed | rows_loaded | errors_seen |
++---------------------+--------+-------------+-------------+-------------+
+| customers.csv       | LOADED |          54 |          54 |           0 |
+| products.csv        | LOADED |           3 |           3 |           0 |
+| revenue_monthly.csv | LOADED |        3888 |        3888 |           0 |
++---------------------+--------+-------------+-------------+-------------+
+```
+
+The wrapper call returns only the final row-count result, not this combined preview. The remaining SQL blocks create objects, grant access, or remove the demo; their completion messages are not data-query tables.
+
+### Verify the Loaded Data
 
 If you need help interpreting the load, ask CoCo to check it without reloading the tables:
+
+**Prompt:**
 
 ```text
 Check the loaded demo data with read-only queries against
@@ -219,6 +292,8 @@ truncate tables, load files, or change any data.
 **Check:** Match the three row counts above and confirm monthly coverage from October 2024 through September 2026. Stop here if the load is incomplete; charts cannot correct missing source rows.
 
 ## Create the Semantic View
+
+### Run the Semantic View Script
 
 Run `sql/02_semantic_view.sql` from the repository:
 
@@ -285,7 +360,11 @@ CREATE OR REPLACE SEMANTIC VIEW REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC
 
 The `AI_SQL_GENERATION` clause gives Cortex Analyst the intended meaning of "Q3" and "last quarter" for this data. Check the generated query's dates when comparing answers.
 
+### Understand the Metric Definitions
+
 Before moving on, use a read-only explanation prompt to connect the model to the questions your dashboard will answer:
+
+**Prompt:**
 
 ```text
 Inspect REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW
@@ -338,13 +417,19 @@ tool_resources:
 EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/03_agent.sql;
 ```
 
+### Prepare the Viewer Role
+
 Then create the viewer role the dashboard is published to (covered in [Publish to a Role](#publish-to-a-role)):
 
 ```sql
 EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/04_viewer_role.sql;
 ```
 
+### Understand the Agent's Role
+
 Revenue Advisor is a separate way to query the semantic view, not a prerequisite for dashboard follow-up chat. To understand that boundary, ask CoCo:
+
+**Prompt:**
 
 ```text
 Review the Revenue Advisor agent specification shown in this guide.
@@ -375,6 +460,8 @@ Open Cortex Code in this workspace. The following prompts are for **CoCo in Snow
 
 Before asking for charts, give CoCo the exact source and define the period. That prevents an attractive dashboard built against the wrong data. This first prompt only inspects the model; the setup scripts above must already have finished.
 
+**Prompt:**
+
 ```text
 /dashboard
 Help me build a native Dashboards 2.0 dashboard in this workspace.
@@ -397,6 +484,8 @@ If the view is unavailable, stop and report the problem.
 
 Establish a small set of reference numbers before formatting them. Ask CoCo to show its SQL and compute totals, rather than supplying the expected values as numbers to put on cards.
 
+**Prompt:**
+
 ```text
 Using only the semantic view we inspected, run a read-only query
 for Q3 2026 across all regions, segments, and products.
@@ -413,6 +502,8 @@ account percentages. Do not change the data or create files.
 ### 3. Create Four KPI Cards
 
 Start with the question the team asks every morning: are we on target? Four cards are enough to establish a working dashboard before adding detail.
+
+**Prompt:**
 
 ```text
 Create a new native dashboard titled Revenue Pulse
@@ -440,6 +531,8 @@ The `.dash` file stores your dashboard as JSON: its tiles and chart specificatio
 
 The cards describe the selected quarter. The trend should reveal when performance changed, so it needs the full two-year context.
 
+**Prompt:**
+
 ```text
 Edit only revenue_pulse_draft.dash. Add a line chart titled
 Monthly Net Revenue below the KPI cards. Plot monthly net revenue
@@ -456,6 +549,8 @@ Keep the KPI cards unchanged and validate the updated file.
 ### 5. Add Dashboard Filters
 
 Make the same dashboard useful to a regional lead or product owner without adding separate pages. Be explicit about the trend's exception: it should retain its historical context when Period changes.
+
+**Prompt:**
 
 ```text
 Add Period, Region, Segment, and Product filters to the
@@ -482,6 +577,8 @@ Continue in the same CoCo conversation and edit only `revenue_pulse_draft.dash`.
 
 A regional breakdown answers where to look next. Signed variance makes the size and direction of each gap visible.
 
+**Prompt:**
+
 ```text
 Add a bar chart titled Variance to Target by Region.
 For each region, calculate total net revenue minus total target
@@ -497,6 +594,8 @@ Keep existing tiles and filters intact, then validate the file.
 ### 7. Locate the Weakest Segment
 
 Regions can contain both strong and weak segments. A heatmap shows that distinction without requiring a separate chart for every region.
+
+**Prompt:**
 
 ```text
 Add a heatmap titled Target Attainment by Region and Segment.
@@ -516,6 +615,8 @@ Apply all four filters and validate the file.
 
 The heatmap identifies a segment; account-level detail lets a reader inspect which records contribute to it. Include the recorded driver so later explanations have evidence beyond a coloured cell.
 
+**Prompt:**
+
 ```text
 Add an account table with customer name, region, segment,
 recorded driver, net revenue, target, signed variance, and attainment.
@@ -534,6 +635,8 @@ make that grain clear. Validate the file.
 
 A waterfall shows how positive and negative contributions combine. Define the total as variance, so the chart cannot accidentally mix revenue amounts with revenue-minus-target amounts.
 
+**Prompt:**
+
 ```text
 Add a waterfall titled Recorded Drivers of Variance.
 Group Q3 net revenue minus target by recorded driver, respecting
@@ -551,6 +654,8 @@ the recorded labels. Validate the file.
 ### 10. Add Comparisons and Sparklines
 
 Once the totals are correct, add historical context to the cards. Keep the selected-period total separate from the monthly sparkline series.
+
+**Prompt:**
 
 ```text
 Enhance the four KPI cards with 12-month sparklines ending at the
@@ -577,6 +682,10 @@ The completed example below shows the four KPI sparklines and the dashboard head
 
 The table and waterfall already answer the main question. These two optional refinements bring your version closer to the companion's visual design. Send them separately so each can be reviewed on its own.
 
+#### Compare Driver Magnitudes
+
+**Prompt:**
+
 ```text
 Add a donut titled Variance by Recorded Driver using the same
 filtered driver aggregates as the waterfall. Size slices by absolute
@@ -594,6 +703,10 @@ In the completed example, the donut and waterfall sit side by side: one compares
 
 ![Completed example's recorded-driver donut beside the variance waterfall](assets/driver-variance-breakdown.png)
 
+#### Compare Account Performance
+
+**Prompt:**
+
 ```text
 Add an account bubble chart with total target on the horizontal
 axis and attainment on the vertical axis. Use net revenue for
@@ -608,7 +721,11 @@ Validate the file and preserve the existing table and charts.
 
 ### 12. Add Optional Chart Actions
 
+#### Check Available Interactions
+
 First confirm which interactions are supported in your account. The companion includes brushing and click-to-filter, while the private-preview documentation may describe a narrower rollout. If an action is unavailable, keep the filter-chip workflow; do not advertise a control that was not created and tested.
+
+**Prompt:**
 
 ```text
 Check whether native trend brushing, bar click-to-filter, and
@@ -621,7 +738,11 @@ and do not substitute custom JavaScript for unsupported actions.
 
 **Check:** Distinguish confirmed availability from assumptions. Keep ordinary filter chips for unsupported or unverified actions; a capability summary is not a completed interaction test.
 
-For supported actions, send these prompts one at a time:
+#### Brush a Time Range
+
+If brushing is supported, start by connecting a selected month range to the dashboard:
+
+**Prompt:**
 
 ```text
 Add a brush action to Monthly Net Revenue. Dragging a month range
@@ -634,6 +755,10 @@ Period and the trend's full 24-month context. Validate the file.
 **Expected output:** On supported accounts, the trend should accept a dragged month range and display a **Months picked on trend** selection chip. While that selection is active, affected tiles should use the brushed months instead of the ordinary Period selection. Removing the chip should return the dashboard to its previous period and the trend to its full historical context.
 
 **Check:** Brush a range outside Q3. Tiles should show that range rather than an empty intersection with Q3. Clear the brush and verify that the Q3 totals return.
+
+#### Filter from a Region Bar
+
+**Prompt:**
 
 ```text
 Add click-to-filter to Variance to Target by Region. Selecting a
@@ -649,6 +774,10 @@ displayed bars. Validate the file.
 
 **Check:** A bar click must not remove the other bars from its own source chart. Clear its selection before testing the Region and Segment dropdowns for deeper breakdowns.
 
+#### Filter from a Heatmap Cell
+
+**Prompt:**
+
 ```text
 Add click-to-filter to Target Attainment by Region and Segment.
 Selecting a cell should filter the other data tiles by both its
@@ -663,6 +792,8 @@ Expose clearable selections and validate the file.
 ### 13. Explain the Controls
 
 Finish with a compact layout and a short guide for the reader. Explain only interactions that survived your checks.
+
+**Prompt:**
 
 ```text
 Arrange the dashboard as one page: header and a short
@@ -684,7 +815,11 @@ Validate the file; do not publish or change sharing.
 
 ### 14. Audit the Generated Result
 
+#### Review Queries and Results
+
 Separate a file-format check from a data check. A valid `.dash` can still contain a query that aggregates at the wrong grain or ignores a filter.
+
+**Prompt:**
 
 ```text
 Audit revenue_pulse_draft.dash without changing it.
@@ -704,7 +839,11 @@ Do not alter data, grants, files, or published artifacts.
 
 **Check:** Compare the results with the figures in **Explore with Filters**. In the UI, test each filter alone, combine Region and Segment, then clear them. Test a combination that returns no data: tiles should show an empty state rather than retaining old values. Restore Q3 and clear all other selections when finished.
 
+#### Repair a Specific Issue
+
 If you find a problem, give CoCo the observed behaviour and one expected outcome instead of asking it to rebuild everything:
+
+**Prompt:**
 
 ```text
 My dashboard's Net Revenue card does not change when
@@ -803,6 +942,8 @@ GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE DASHBOARD_DEMO_SALES_OPS;
 GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE DASHBOARD_DEMO_SALES_OPS;
 ```
 
+### Assign the Viewer Role
+
 To let someone view the dashboard, grant them the role:
 
 ```sql
@@ -811,7 +952,11 @@ GRANT ROLE DASHBOARD_DEMO_SALES_OPS TO USER <name>;
 
 ### Publish as an Artifact
 
+#### Review Publication Readiness
+
 Before publishing, choose which file you intend to share: your validated dashboard or the completed example. Check the open file's path and its data, since both may be titled Revenue Pulse. Publishing is a deliberate UI action, not part of the generation prompts. You can ask CoCo to review the file first:
+
+**Prompt:**
 
 ```text
 Review revenue_pulse_draft.dash for publication without editing
@@ -824,6 +969,8 @@ viewer-role test. Do not grant access or change any sharing settings.
 **Expected output:** A publication-readiness review identifying missing queries, unresolved errors, misleading labels, or instructions for absent controls. It should distinguish what can be checked from the file from what still requires execution or an intended-viewer test. The dashboard should remain unpublished, with sharing and grants unchanged.
 
 **Check:** Replace the filename in that prompt if you chose the reference. Resolve reported problems and restore default filters before continuing. This review does not replace checking access as the intended viewer.
+
+#### Publish and Confirm Access
 
 In the dashboard toolbar, choose **Share > Publish as artifact**. The dialog notes that viewers run the dashboard with their own privileges ([caller's rights](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards)), not the owner's. The role's grants decide what each viewer sees.
 
@@ -848,6 +995,8 @@ The artifact opens with the same filter chips and KPI tiles you built in Workspa
 ### Ask a Follow-up Question
 
 Publishing saved the dashboard as an artifact, so you can ask follow-up questions about the data it shows. Each follow-up starts a new conversation that carries the artifact's data and context, and it stays private to you ([Artifacts in Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork/artifacts)). In the follow-up box, ask:
+
+**Prompt:**
 
 ```text
 Why is EMEA Enterprise behind target in Q3 2026? Quantify the drivers.
@@ -875,6 +1024,10 @@ For questions beyond what the tiles hold, open the Revenue Advisor agent in CoWo
 
 For a more gradual exploration, start a conversation from the dashboard with a scoped question, then ask for detail in that conversation. These are suggested follow-ups, not additional captured responses.
 
+#### Identify the Largest Shortfall
+
+**Prompt:**
+
 ```text
 For Q3 2026, which region and segment has the largest negative
 variance to target? State its net revenue, target, variance,
@@ -884,6 +1037,10 @@ and attainment, and identify the dashboard results you used.
 **Expected output:** A focused answer naming the region-segment combination with the largest dollar shortfall, followed by its four financial measures and the dashboard evidence used. This narrows the investigation to one slice before asking for a causal explanation. If the required results are unavailable, the response should identify that gap rather than assert a ranking.
 
 **Check:** Identify the slice by negative dollar variance, not just the lowest attainment percentage. The expected largest region-segment gap is EMEA Enterprise.
+
+#### Reconcile the Recorded Drivers
+
+**Prompt:**
 
 ```text
 For EMEA Enterprise in the same quarter, break the variance down
@@ -895,6 +1052,10 @@ do not contain enough detail, say what is missing rather than guess.
 **Expected output:** A driver-by-driver table or concise explanation including the negative contributions, positive offset, and their signed total. The response should state whether the parts reconcile to the segment gap. If the tile results lack driver detail, expect a description of the missing evidence instead of invented contributions.
 
 **Check:** Compare the signed contributions with the table in **Focus on Enterprise Accounts**. An answer should not invent detail missing from the available tile results.
+
+#### Separate Evidence from Hypotheses
+
+**Prompt:**
 
 ```text
 Which parts of that explanation are directly supported by recorded
@@ -909,7 +1070,11 @@ Do not forecast beyond the available data.
 
 ## Clean Up
 
+### Review the Cleanup Scope
+
 Cleanup is optional until you finish exploring, and destructive once executed. If you want a final review, paste the cleanup SQL below into a file and ask CoCo:
+
+**Prompt:**
 
 ```text
 Review this tutorial cleanup SQL without executing or changing it.
@@ -923,11 +1088,15 @@ Do not drop objects, delete files, revoke grants, or publish changes.
 
 **Check:** Confirm that the named database, role, integration, workspace, and artifacts belong only to this tutorial before performing the steps below. Do not rely on the prompt to authorize deletion.
 
+### Remove Artifacts and Workspace
+
 Remove the published dashboard and the workspace first:
 
 1. Open the dashboard's **Share** dialog and remove every role from **Who has access**.
 2. Delete the artifact from CoWork (**Artifacts**, open it, **More options > Delete**). During testing, the CoWork delete returned an error. With every role removed, the artifact stays visible only to you.
 3. In **Workspaces**, delete only the draft file or dedicated tutorial workspace you created. If the Git workspace was created solely for this tutorial, select **...** (More options) next to its name, select **Delete**, and confirm. Do not delete a workspace that contains unrelated work. If you published both dashboard versions, review and remove each tutorial artifact separately.
+
+### Remove the Demo Objects
 
 Then run `sql/99_cleanup.sql`. Paste it into your SQL file rather than running it from the repository, because it drops the database that holds the Git repository object. Dropping `REVENUE_PULSE_DB` removes the schema, tables, stage, Git repository, semantic view, and agent. The script also drops the viewer role and the API integration, which sit outside the database. No script runs this file for you.
 
