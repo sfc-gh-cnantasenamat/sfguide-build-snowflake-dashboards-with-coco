@@ -18,7 +18,7 @@ To work through that morning revenue check, you'll use a sample dataset with a s
 
 All data is synthetic: a fictional B2B software company with 54 accounts, 3 product lines, and 24 months of revenue through September 30, 2026. The data contains a story. Q3 2026 net revenue is barely up (0.8%) year over year and $1.09M behind target. EMEA Enterprise is the largest single miss, and APAC is behind too.
 
-The task is to trace that shortfall from the company-wide total to the regions, accounts, and recorded drivers behind it. You'll need a shared overview for the daily check and a way to ask follow-up questions using the same metric definitions.
+The task is to trace that shortfall from the company-wide total to the regions, accounts, and recorded drivers behind it. You'll need a shared overview for the daily check and a way to ask follow-up questions with a consistent basis for comparison.
 
 This guide brings the metric definitions, the AI assistant, and the dashboard together in Snowflake through **Revenue Pulse**, a workflow with three connected parts:
 
@@ -391,21 +391,35 @@ The new workspace contains every file in the repository. Open `dashboards/revenu
 
 ## Explore with Filters
 
+### Review the Q3 Overview
+
 With the dashboard open, select **Run all**.
 
 ![Revenue Pulse default Q3 view with the top-right Try Chart Actions tile and four KPI sparklines](assets/dashboard-overview.png)
 
 The Variance to Target card abbreviates its value to **−$1M** at zero decimal places. The underlying shortfall is approximately **−$1.09M**, visible with more precision in the breakdowns. The attainment and margin card values are percentages, as their subtitles indicate.
 
-With the default Q3 2026 period, the KPI row shows net revenue of **$6.9M**, up 0.8% year over year. Attainment is **86.3%**, which is **$1.09M behind target**, and gross margin is 71%. The trend line tracked target for 21 months, then fell below it in July. In the heatmap, the darkest red cell is **EMEA Enterprise at 57.9%**. Five more cells miss target: APAC SMB (65.0%), APAC Mid-market (72.0%), Americas Mid-market (78.0%), Americas SMB (85.0%), and APAC Enterprise (88.0%). EMEA Mid-market and SMB are on target, and Americas Enterprise (117.0%) is the only cell well above it. The variance waterfall starts at target and walks to the total gap. Normal trading adds $376.7K, and discounts and credits (−$351.6K), contract downsize (−$677.1K), and renewal delay (−$438.1K) take it down to **−$1.09M**. In the bubble chart, most Americas Enterprise accounts and some EMEA Mid-market and SMB accounts sit on or above the dashed 100% line, and most APAC and Americas accounts sit below it. Five EMEA Enterprise accounts with the largest targets sit well below it, and one of them is at 0%.
+With the default Q3 2026 period, the KPI row shows net revenue of **$6.9M**, up 0.8% year over year. Attainment is **86.3%**, which is **$1.09M behind target**, and gross margin is 71%. The trend line tracked target for 21 months, then fell below it in July.
+
+### Locate the Revenue Gap
+
+In the heatmap, the darkest red cell is **EMEA Enterprise at 57.9%**. Five more cells miss target: APAC SMB (65.0%), APAC Mid-market (72.0%), Americas Mid-market (78.0%), Americas SMB (85.0%), and APAC Enterprise (88.0%). EMEA Mid-market and SMB are on target, and Americas Enterprise (117.0%) is the only cell well above it.
+
+The variance waterfall starts at target and walks to the total gap. Normal trading adds $376.7K, and discounts and credits (−$351.6K), contract downsize (−$677.1K), and renewal delay (−$438.1K) take it down to **−$1.09M**.
 
 ![Q3 recorded-driver donut with signed in-ring labels beside the variance waterfall](assets/driver-variance-breakdown.png)
+
+In the bubble chart, most Americas Enterprise accounts and some EMEA Mid-market and SMB accounts sit on or above the dashed 100% line, and most APAC and Americas accounts sit below it. Five EMEA Enterprise accounts with the largest targets sit well below it, and one of them is at 0%.
+
+### Filter to EMEA
 
 Set **Region = EMEA**. Every data tile re-queries: net revenue is $1.8M, attainment 70.1%, and variance approximately −$779.1K. With only one region selected, the region chart shows segment-level bars. Clicking a region bar instead uses a scoped **Drill: region path** filter and leaves the source chart available for comparison.
 
 ![Updated Revenue Pulse dashboard filtered to EMEA with KPI sparklines and Chart Actions instructions](assets/filter-region-emea.png)
 
 The **Region** chip in the filter bar now reads **EMEA**, and the KPI row has re-queried for that region alone. Net revenue is $1.8M, down 18.2% year over year. Attainment fell to 70.1%, down from 86.3% for all regions. Variance to target is −$779K, while gross margin holds at 71.3%. Below the KPIs, the trend chart redraws on an EMEA scale: net revenue stays close to target until it drops sharply in July.
+
+### Focus on Enterprise Accounts
 
 Add **Segment = Enterprise** and look at the account table. One account has zero revenue in the quarter, and four others are well under target. The drivers chart shows what sales ops recorded for EMEA Enterprise in Q3:
 
