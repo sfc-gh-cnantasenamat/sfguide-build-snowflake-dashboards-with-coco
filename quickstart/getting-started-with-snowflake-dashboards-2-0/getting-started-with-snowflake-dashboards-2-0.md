@@ -16,13 +16,12 @@ It's Monday morning and revenue is behind target. The BI dashboard says attainme
 
 In this guide, you'll build **Revenue Pulse** to work through that morning check on a synthetic dataset: a fictional B2B software company with 54 accounts, 3 product lines, and 24 months of revenue through September 30, 2026. The data contains a story. Q3 2026 net revenue is barely up (0.8%) year over year and $1.09M behind target. EMEA Enterprise is the largest single miss, and APAC is behind too. Your task is to trace that shortfall from the company-wide total to the regions, accounts, and recorded drivers behind it, using a shared overview for the daily check and follow-up questions with a consistent basis for comparison.
 
-The workflow has three parts:
+The workflow has four parts:
 
 1. **A [Cortex Agent](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)** that answers plain-language revenue questions through Cortex Analyst.
 2. **A [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) dashboard** that you build with Cortex Code prompts for the team's daily revenue check.
 3. **A shared [semantic view](https://docs.snowflake.com/en/user-guide/views-semantic/overview)** that defines their joins, dimensions, and metrics. Compare results using the same period and filters.
-
-You'll publish the dashboard to a sales-ops role and ask follow-up questions in [Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork). Dashboard follow-up uses tile results and context; it does not automatically invoke the separate Revenue Advisor agent.
+4. **A published dashboard in [Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork)** that you share with a sales-ops role and ask follow-up questions about. Dashboard follow-up uses tile results and context; it does not automatically invoke the separate Revenue Advisor agent.
 
 ### When to Use Dashboards 2.0
 Snowflake gives you several ways to present data, and each fits a different job:
