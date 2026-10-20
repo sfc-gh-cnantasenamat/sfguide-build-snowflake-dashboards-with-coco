@@ -14,6 +14,12 @@ fork repo link: https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboar
 
 It's Monday morning and revenue is behind target. The BI dashboard says attainment is 86%, the AI assistant says 84%, and the sales-ops spreadsheet says something else. Each tool has its own copy of the metric logic, so the team spends the meeting reconciling numbers instead of asking why the quarter is slipping. Even once the numbers agree, finding the cause means paging through a multi-page dashboard and drilling down filter by filter.
 
+To work through that morning revenue check, you'll use a sample dataset with a shortfall to investigate.
+
+All data is synthetic: a fictional B2B software company with 54 accounts, 3 product lines, and 24 months of revenue through September 30, 2026. The data contains a story. Q3 2026 net revenue is barely up (0.8%) year over year and $1.09M behind target. EMEA Enterprise is the largest single miss, and APAC is behind too.
+
+The task is to trace that shortfall from the company-wide total to the regions, accounts, and recorded drivers behind it. You'll need a shared overview for the daily check and a way to ask follow-up questions using the same metric definitions.
+
 This guide brings the metric definitions, the AI assistant, and the dashboard together in Snowflake through **Revenue Pulse**, a workflow with three connected parts:
 
 1. **An AI assistant powered by a [Cortex Agent](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents).** It answers plain-language revenue questions by turning them into SQL against a semantic view. That supports individual questions, but the team also needs a shared view to check every morning.
@@ -21,8 +27,6 @@ This guide brings the metric definitions, the AI assistant, and the dashboard to
 3. **A shared [semantic view](https://docs.snowflake.com/en/user-guide/views-semantic/overview) queried by both.** It defines revenue metrics such as net revenue, target, and attainment, the dimensions used to slice them, and how the underlying tables join. Those explicit definitions let readers explore the data through dashboard filters or agent questions without reconstructing the joins and calculations themselves. Both use the same metric definitions; compare results using the same period and filters.
 
 Finally, you'll publish the dashboard as an artifact shared with a sales-ops role, click its charts to filter the results, and ask follow-up "why" questions about those results in [Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork).
-
-All data is synthetic: a fictional B2B software company with 54 accounts, 3 product lines, and 24 months of revenue through September 30, 2026. The data contains a story. Q3 2026 net revenue is barely up (0.8%) year over year and $1.09M behind target. EMEA Enterprise is the largest single miss, and APAC is behind too.
 
 ### When to Use Dashboards 2.0
 Snowflake gives you several ways to present data, and each fits a different job:
