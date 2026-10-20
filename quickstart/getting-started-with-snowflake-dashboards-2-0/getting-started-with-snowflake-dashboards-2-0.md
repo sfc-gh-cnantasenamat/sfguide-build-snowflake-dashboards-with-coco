@@ -266,7 +266,7 @@ CoWork conversation started from a dashboard artifact.
 
 **Check:** The agent's source is the same semantic view, but the dashboard's follow-up does not automatically call Revenue Advisor. Creation of the agent is not a test of its answers.
 
-## Build with Cortex Code
+## Build Dashboard with Cortex Code
 
 ### Open a Git Workspace
 
@@ -941,7 +941,9 @@ DROP API INTEGRATION IF EXISTS REVENUE_PULSE_GIT_API;
 
 ## Conclusion And Resources
 
-After completing the checks, you have a native dashboard built with focused prompts, a shared semantic view, and a role-scoped artifact for CoWork exploration. Revenue Advisor provides a separate way to query the same metric definitions.
+Remember the Monday-morning meeting this guide started with, where the dashboard, the assistant, and the spreadsheet each told a different story? With Revenue Pulse, one semantic view defines net revenue, target, and attainment for the dashboard, the Revenue Advisor agent, and CoWork, so the numbers agree before the conversation starts. From there, you traced the $1.09M Q3 shortfall from the KPI cards to EMEA, to EMEA Enterprise at 57.9% attainment, and down to the recorded drivers and accounts behind it, without leaving the page.
+
+You built that dashboard by describing what you needed to Cortex Code, one prompt at a time, and checking each result before moving on. You then published it to a role that can read only what the dashboard needs, so the sales-ops team can use it every morning and ask CoWork why the numbers moved. The same pattern applies to other data you work with: define the metrics once in a semantic view, build the dashboard with focused prompts, check it against numbers you can reproduce, and share it with the role that needs it.
 
 ### What You Learned
 - Build a native dashboard with Snowsight CoCo's `/dashboard` skill, then refine it with one focused prompt at a time
