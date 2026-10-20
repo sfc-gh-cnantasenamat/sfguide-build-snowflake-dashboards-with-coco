@@ -44,7 +44,7 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-You'll build Revenue Pulse, a single-page revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. Brush the trend or click a region bar, and the related charts would filter to match. Each build step shows a close-up of the chart it adds, and because Cortex Code generates the layout from your prompts, your version may look a little different.
+You'll build Revenue Pulse, a single-page revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. Brush the trend or click a region bar, and the related charts would filter to match.
 
 ![Completed Revenue Pulse dashboard from summary cards through account details, including the driver donut and account bubble charts](assets/dashboard-complete.png)
 
@@ -60,6 +60,8 @@ The architecture below shows how the dashboard and Revenue Advisor use the share
 
 Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
 
+## Setup
+
 ### How to Follow Along
 
 Run the supplied setup scripts, then send one authoring prompt at a time in the same Snowsight CoCo conversation. Review each change and complete its **Check** before continuing.
@@ -73,8 +75,6 @@ The `/dashboard` skill was confirmed to load in Snowsight during a read-only che
 > LLM generation is non-deterministic. **Expected output** describes the intended result, not a guaranteed response or layout; use **Check** to decide whether to continue.
 >
 > With the same data, definitions, dates, filters, and access, totals must reconcile, allowing for display rounding. Investigate differences rather than attributing them to LLM variability.
-
-## Setup
 
 ### Connect Snowflake to the Companion Repository
 
