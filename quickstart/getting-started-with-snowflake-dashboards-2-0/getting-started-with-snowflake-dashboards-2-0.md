@@ -75,9 +75,11 @@ The companion's `dashboards/revenue_pulse.dash` is the completed example used fo
 
 The `/dashboard` skill was confirmed to load in Snowsight during a read-only check. The incremental authoring prompts below are suggested instructions, not a transcript of a completed end-to-end generation run. Validate the result in your account; a successful file check alone does not establish that its SQL or interactions are correct. Advanced chart actions depend on your account's enabled features.
 
-**Note on LLM variability:** LLM generation is non-deterministic: the same prompt can produce different wording, SQL, chart layouts, or sequences of actions on different runs. The [natural-language fraud detection guide](https://www.snowflake.com/en/developers/guides/build-real-time-fraud-detection-model-with-natural-language-in-snowflake-ml/#generate-synthetic-data) makes the same point about variation in generated results. Treat each **Expected output** below as a description of the intended result, not a verbatim response or a guarantee of success. Use the separate **Check** to decide whether to continue.
-
-That variability does not make incorrect totals acceptable. This guide loads fixed synthetic data from the companion repository. With the same data, metric definitions, period, filters, and access, correctly generated queries should reconcile to the same underlying amounts, allowing for display rounding. Investigate differences in totals rather than attributing them to LLM randomness.
+> **Notes:**
+>
+> LLM generation is non-deterministic: the same prompt can produce different wording, SQL, chart layouts, or sequences of actions on different runs. Treat each **Expected output** below as a description of the intended result, not a verbatim response or a guarantee of success. Use the separate **Check** to decide whether to continue.
+>
+> That variability does not make incorrect totals acceptable. This guide loads fixed synthetic data from the companion repository. With the same data, metric definitions, period, filters, and access, correctly generated queries should reconcile to the same underlying amounts, allowing for display rounding. Investigate differences in totals rather than attributing them to LLM randomness.
 
 ## Setup
 
@@ -146,7 +148,9 @@ LS @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/;
 
 The last statement lists the scripts in the repository. Every object in this guide lives in `REVENUE_PULSE_DB`, so you can remove them all with one statement at the end. The API integration and the viewer role sit outside the database and are dropped separately.
 
-If your warehouse isn't `COMPUTE_WH`, use your own warehouse in the SQL file. Later, instead of running `sql/03_agent.sql` and `sql/04_viewer_role.sql` from the repository, copy each one from the repository into your SQL file, replace `COMPUTE_WH` with your warehouse, and run it there.
+> **Notes:**
+>
+> If your warehouse isn't `COMPUTE_WH`, use your own warehouse in the SQL file. Later, instead of running `sql/03_agent.sql` and `sql/04_viewer_role.sql` from the repository, copy each one from the repository into your SQL file, replace `COMPUTE_WH` with your warehouse, and run it there.
 
 ### About the Data
 
@@ -269,7 +273,9 @@ Each `COPY INTO` has its own [load-result table](https://docs.snowflake.com/en/u
 +---------------------+--------+-------------+-------------+-------------+
 ```
 
-The wrapper call returns only the final row-count result, not this combined preview. The remaining SQL blocks create objects, grant access, or remove the demo; their completion messages are not data-query tables.
+> **Notes:**
+>
+> The wrapper call returns only the final row-count result, not this combined preview. The remaining SQL blocks create objects, grant access, or remove the demo; their completion messages are not data-query tables.
 
 ### Verify the Loaded Data
 
