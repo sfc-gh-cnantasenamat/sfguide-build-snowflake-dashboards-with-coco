@@ -14,7 +14,7 @@ fork repo link: https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboar
 
 It's Monday morning and revenue is behind target. The BI dashboard says attainment is 86%, the AI assistant says 84%, and the sales-ops spreadsheet says something else. Each tool has its own copy of the metric logic, so the team spends the meeting reconciling numbers instead of asking why the quarter is slipping. Even once the numbers agree, finding the cause means paging through a multi-page dashboard and drilling down filter by filter.
 
-This guide puts the metric definitions, the AI assistant, and the dashboard in one place in Snowflake. One semantic view defines the metrics. A Cortex Agent and a single-page dashboard both query that view, so they can't disagree. You publish the dashboard to a role, click its charts to drill in, and ask follow-up "why" questions in Snowflake CoWork.
+This guide puts the metric definitions, the AI assistant, and the dashboard in one place in Snowflake. A Cortex Agent and a single-page dashboard both query one semantic view, so they share metric definitions. Compare their answers using the same period and filters. You publish the dashboard to a role, click its charts to filter the results, and ask follow-up "why" questions in Snowflake CoWork.
 
 An analyst already has a revenue [semantic view](https://docs.snowflake.com/en/user-guide/views-semantic/overview) and a [Cortex Agent](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) that the sales team uses. The semantic view defines the revenue metrics (such as net revenue, target, and attainment), the dimensions to slice them by, and how the underlying tables join, so every query uses the same definitions. The Cortex Agent is an AI assistant that answers plain-language questions by turning them into SQL against that semantic view. What's missing is a shared view that the team checks every morning. In this guide, you use [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) to build that view as a native Workspaces dashboard (a `.dash` file) on the semantic view, publish it to a sales-ops role as an artifact, and then open it in [Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork) and ask follow-up "why" questions about the numbers.
 
@@ -43,9 +43,9 @@ An end-to-end revenue workflow in which every number comes from one definition:
 
 - **A semantic view** (`REVENUE_SEMANTIC_VIEW`) that defines net revenue, target, variance, and attainment once, on top of synthetic revenue tables.
 - **A Cortex Agent** (`REVENUE_ADVISOR`) that answers plain-language revenue questions by querying that semantic view.
-- **A "Revenue Pulse" dashboard**, built as a `.dash` file in Snowflake Workspaces, that queries the same semantic view. It shows KPIs, trends, and variance breakdowns on one page, and you can filter it or click its charts to cross-filter.
+- **A "Revenue Pulse" dashboard**, built as a `.dash` file in Snowflake Workspaces, that queries the same semantic view. It has four KPI sparklines, a revenue trend, region and segment breakdowns, a driver donut, a variance waterfall, and account details. The top-right **Try Chart Actions** tile explains the available interactions.
 - **A shared artifact**: you publish the dashboard as an artifact and share it with a sales-ops role, so anyone in that role can open it.
-- **A CoWork chat session** where a viewer opens the dashboard and asks follow-up "why" questions. The agent answers from the same semantic view, so the chat and the dashboard agree.
+- **A CoWork chat session** where a viewer opens the dashboard and asks follow-up "why" questions using its executed tile results. Revenue Advisor is a separate agent you open explicitly when you want to query the semantic view beyond those results.
 
 ![Architecture: the Git repo and setup script feed a semantic view that both the Cortex Agent and the dashboard query; the dashboard is published to a role and explored in CoWork](assets/architecture.png)
 
@@ -105,7 +105,7 @@ Run `sql/01_setup.sql` straight from the repository:
 EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/01_setup.sql;
 ```
 
-The script creates the tables and an internal stage, copies the CSVs from the Git repository into the stage with `COPY FILES`, and loads each table with `COPY INTO ... MATCH_BY_COLUMN_NAME`. It truncates each table before loading, so rerunning it is safe:
+The script creates the tables and an internal stage, copies the CSVs from the Git repository into the stage with `COPY FILES`, and loads each table with `COPY INTO ... MATCH_BY_COLUMN_NAME`. It truncates each table before loading. Run it only in the dedicated demo database: rerunning it replaces any data already in these tables.
 
 ```sql
 CREATE TABLE IF NOT EXISTS REVENUE_PULSE_DB.DASHBOARD_DEMO.CUSTOMERS (
@@ -174,7 +174,7 @@ Run `sql/02_semantic_view.sql` from the repository:
 EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branches/main/sql/02_semantic_view.sql;
 ```
 
-It defines facts in USD, dimensions such as region, segment, and recorded driver, and metrics for net revenue, target, variance, attainment, and margin. Ratio metrics use `DIV0NULL` so an empty slice returns null instead of an error.
+It defines facts in USD, dimensions such as region, segment, and recorded driver, and metrics for net revenue, target, variance, attainment, and margin. Ratio metrics use [`DIV0NULL`](https://docs.snowflake.com/en/sql-reference/functions/div0null), which returns zero when the divisor is zero or NULL. An empty grouped result can still contain no rows; zero and missing data are not interchangeable.
 
 ```sql
 CREATE OR REPLACE SEMANTIC VIEW REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW
@@ -225,13 +225,13 @@ CREATE OR REPLACE SEMANTIC VIEW REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC
       COMMENT = 'Net revenue divided by target, as a ratio (0.92 = 92%)',
     revenue.gross_profit AS SUM(revenue.net_revenue_usd) - SUM(revenue.cost_usd) COMMENT = 'Net revenue minus cost in USD',
     revenue.gross_margin AS DIV0NULL(SUM(revenue.net_revenue_usd) - SUM(revenue.cost_usd), SUM(revenue.net_revenue_usd))
-      COMMENT = 'Gross profit divided by net revenue, as a ratio; null when net revenue is zero'
+      COMMENT = 'Gross profit divided by net revenue, as a ratio; zero when net revenue is zero or NULL'
   )
   COMMENT = 'Revenue Pulse: synthetic B2B revenue vs target by month, region, segment, account, and product. Data through 2026-09-30.'
   AI_SQL_GENERATION 'Data is monthly and complete through September 2026. Last quarter or Q3 means months 2026-07-01 through 2026-09-01. Ratios are 0-1; present as percentages. Year-over-year compares the same months one year earlier.';
 ```
 
-The `AI_SQL_GENERATION` clause tells Cortex Analyst what "Q3" and "last quarter" mean for this data, so natural-language questions resolve to the right months.
+The gross-margin comment above corrects a stale comment in companion revision `d9c205c`; its `DIV0NULL` expression is unchanged. The `AI_SQL_GENERATION` clause gives Cortex Analyst the intended meaning of "Q3" and "last quarter" for this data. Check the generated query's dates when comparing answers.
 
 ## Create the Agent
 
@@ -281,9 +281,9 @@ EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branc
 
 ### How the File Works
 
-A `.dash` file is JSON (spec version 2). It holds tiles (text, chart, or table), filters, a 12-column grid layout, and SQL datasources. The repository includes a ready-made file, `dashboards/revenue_pulse.dash`, generated by `scripts/build_dashboard.py`. You don't need to run the script. The excerpts below show how the file is put together. For the full reference on tiles, filters, and layout, see [Dashboards in Snowflake CoWork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
+A `.dash` file is JSON (spec version 2). It holds tiles (text, chart, or table), filters, a 12-column grid layout, and SQL datasources. The repository includes a ready-made file, `dashboards/revenue_pulse.dash`, generated by `scripts/build_dashboard.py`. This version has 15 tiles, 11 SQL datasources, and 7 filters, including the chart-action filters. You don't need to run the script. The excerpts below match [companion revision d9c205c](https://github.com/sfc-gh-cnantasenamat/build-a-revenue-dashboard-with-snowflake-workspaces/tree/d9c205c0b58443cce582db88c2a2edd7e88dd0ae). For the full reference on tiles, filters, and layout, see [Dashboards in Snowflake CoWork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
 
-Every datasource reads additive metrics from the semantic view at month, region, segment, and product grain. Filters are applied outside the view through `{{ filter('ID') }}` macros (see [filter template syntax](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards)). Each row also carries drill-path columns (for example `EMEA › Enterprise`), so a chart click can filter every tile, and the trend brush (`BRUSH_MONTH`) replaces the Period while months are picked:
+Every datasource reads additive metrics from the semantic view at month, region, segment, and product grain. Filters are applied outside the view through `{{ filter('ID') }}` macros (see [filter template syntax](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards)). Each row also carries drill-path columns (for example `EMEA › Enterprise`), so a chart click can filter its target tiles, and the trend brush (`BRUSH_MONTH`) replaces the Period while months are picked:
 
 ```python
 def base(extra_dims=", revenue.recorded_driver, customers.customer_name", shift_year=False, metrics="revenue.net_revenue, revenue.revenue_target, "
@@ -316,10 +316,13 @@ def where(ids=FILTERS, brush=True):
 
 Ratios such as attainment and margin are computed after aggregation (`DIV0NULL(SUM(NET), SUM(TGT))`), so filtered totals stay correctly weighted. For year-over-year comparison, `shift_year=True` moves each month forward one year. The prior-year rows then pass through the same Period filter as the current rows.
 
-KPI tiles are Vega-Lite charts marked as scorecards. They compare `CURRENT_VALUE` with `PRIOR_VALUE`:
+KPI tiles are Vega-Lite charts marked as scorecards. They compare `CURRENT_VALUE` with `PRIOR_VALUE` and plot a 12-month sparkline from `DS` and `SERIES_VALUE`. The series ends at the last selected month and retains the region, segment, product, and drill filters:
 
 ```python
-def scorecard(title, label, decimals=1, increases_better=True, compare=True):
+def scorecard(title, label, decimals=1, increases_better=True, compare=True, thresholds=None):
+    # Sparklines colour by trend direction (polarity), or by fixed bands when thresholds are given.
+    sparkline = ({"sparklineColorMode": "threshold", "thresholdDirection": "higher-is-better",
+                  "thresholds": thresholds} if thresholds else {"sparklineColorMode": "polarity"})
     return {"title": title, "type": "chart", "spec": {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json", "data": {"name": "values"},
         "usermeta": {"snowflake": {"chartType": "scorecard", "scorecardConfig": {
@@ -327,11 +330,14 @@ def scorecard(title, label, decimals=1, increases_better=True, compare=True):
             "deltaColorMode": "increasesBetter" if increases_better else "decreasesBetter",
             "comparisonMode": "manual", "comparisonEnabled": compare,
             "prevColumn": "PRIOR_VALUE", "currentColumn": "CURRENT_VALUE",
-            "displayFormat": "change", "sparklineEnabled": False,
+            "displayFormat": "change", "sparklineEnabled": True, **sparkline,
+            "seriesBucketField": "DS", "seriesBucketFieldType": "temporal", "seriesValueField": "SERIES_VALUE",
             "labelEnabled": True, "labelField": "", "labelText": label}}}}}
 ```
 
-The Variance to Target card turns off comparison (`compare=False`). Its value changes sign from last year, so a percent change would be meaningless.
+The Variance to Target card uses `decimals=0` and turns off comparison (`compare=False`). Its value changes sign from last year, so a percent change would be misleading. Its sparkline uses thresholds: red below −$1.5M, yellow below zero, and green at or above zero. The other sparklines use polarity mode.
+
+The generator also loads the editor-saved donut, Net Revenue, and Variance to Target specs from `config/chart_specs/`. These files preserve the native scorecard rendering and animation settings as well as the donut's in-ring labels. Keep them with the generator when making local changes; the scorecard helper alone does not reproduce those expanded rendering specs.
 
 Filters are a date range defaulting to Q3 2026, plus multi-selects whose options come from table columns:
 
@@ -345,13 +351,18 @@ Filters are a date range defaulting to Q3 2026, plus multi-selects whose options
                          "options": options("PRODUCTS", "PRODUCT_NAME")}},
 ```
 
-The trend tile binds every filter except Period. That way the selected quarter is always shown against the full 24 months.
+The trend tile ignores the ordinary Period filter, showing the full 24-month context until you brush a range. The separate **Months picked on trend** filter narrows the trend itself and the other data tiles, replacing the Period selection while it is active.
 
-The charts use the Turbo colour scheme. The heatmap uses a reversed Turbo scale fixed on 55% to 120% attainment: deep misses are dark red, cells near 90% are yellow-green, and cells beating target are blue. A colour bar at the right edge shows the scale:
+The charts use a muted red, orange, yellow, blue, and teal palette. The heatmap fixes that scale from 55% to 120% attainment: deep misses are red, values around 88% are yellow, and higher attainment moves through blue toward teal. A colour bar at the right edge shows the scale:
 
 ```python
-HEATMAP_SCALE = {"scheme": "turbo", "reverse": True, "domain": [0.55, 1.2], "clamp": True}
+PALETTE = ["#C8524B", "#DD8459", "#E2C27A", "#5E8AC7", "#3E9F98"]
+HEATMAP_SCALE = {"range": PALETTE, "domain": [0.55, 0.7125, 0.875, 1.0375, 1.2], "clamp": True, "interpolate": "rgb"}
 ```
+
+The region and waterfall variance colours are relative to the values in each chart, not fixed alert bands anchored at zero. Read the signed values and colour bar rather than treating a colour as a positive/negative flag.
+
+The driver donut sizes each slice by **absolute variance** and puts multiline driver names and signed values inside the ring. Slice areas are not percentages of the net shortfall: positive and negative contributions offset one another. Use the waterfall to see how those signed contributions reconcile to the total gap.
 
 The waterfall's SQL does the stacking, so the Vega-Lite spec only draws floating bars from `START_VALUE` to `END_VALUE`. A running window sum walks through each recorded driver's variance, and a final row closes on the total gap:
 
@@ -374,11 +385,17 @@ The new workspace contains every file in the repository. Open `dashboards/revenu
 
 With the dashboard open, select **Run all**.
 
+![Revenue Pulse default Q3 view with the top-right Try Chart Actions tile and four KPI sparklines](assets/dashboard-overview.png)
+
+The Variance to Target card abbreviates its value to **−$1M** at zero decimal places. The underlying shortfall is approximately **−$1.09M**, visible with more precision in the breakdowns. The attainment and margin card values are percentages, as their subtitles indicate.
+
 With the default Q3 2026 period, the KPI row shows net revenue of **$6.9M**, up 0.8% year over year. Attainment is **86.3%**, which is **$1.09M behind target**, and gross margin is 71%. The trend line tracked target for 21 months, then fell below it in July. In the heatmap, the darkest red cell is **EMEA Enterprise at 57.9%**. Five more cells miss target: APAC SMB (65.0%), APAC Mid-market (72.0%), Americas Mid-market (78.0%), Americas SMB (85.0%), and APAC Enterprise (88.0%). EMEA Mid-market and SMB are on target, and Americas Enterprise (117.0%) is the only cell well above it. The variance waterfall starts at target and walks to the total gap. Normal trading adds $376.7K, and discounts and credits (−$351.6K), contract downsize (−$677.1K), and renewal delay (−$438.1K) take it down to **−$1.09M**. In the bubble chart, most Americas Enterprise accounts and some EMEA Mid-market and SMB accounts sit on or above the dashed 100% line, and most APAC and Americas accounts sit below it. Five EMEA Enterprise accounts with the largest targets sit well below it, and one of them is at 0%.
 
-Set **Region = EMEA**, or click the EMEA bar in **Variance to Target by Region**. Every other tile re-queries: net revenue is $1.8M, attainment 70%, and variance −$779.1K.
+![Q3 recorded-driver donut with signed in-ring labels beside the variance waterfall](assets/driver-variance-breakdown.png)
 
-![Dashboard filtered to the EMEA region](assets/filter-region-emea.jpg)
+Set **Region = EMEA**. Every data tile re-queries: net revenue is $1.8M, attainment 70.1%, and variance approximately −$779.1K. With only one region selected, the region chart shows segment-level bars. Clicking a region bar instead uses a scoped **Drill: region path** filter and leaves the source chart available for comparison.
+
+![Updated Revenue Pulse dashboard filtered to EMEA with KPI sparklines and Chart Actions instructions](assets/filter-region-emea.png)
 
 The **Region** chip in the filter bar now reads **EMEA**, and the KPI row has re-queried for that region alone. Net revenue is $1.8M, down 18.2% year over year. Attainment fell to 70.1%, down from 86.3% for all regions. Variance to target is −$779K, while gross margin holds at 71.3%. Below the KPIs, the trend chart redraws on an EMEA scale: net revenue stays close to target until it drops sharply in July.
 
@@ -395,19 +412,19 @@ Together these sum to the segment's −$778.7K gap. Chart clicks appear as filte
 
 ### Chart Actions
 
-You can also filter by clicking the charts themselves.
+You can also filter by clicking the charts themselves. The top-right **Try Chart Actions** tile is a reminder of the three actions. A region-bar click filters the other charts without drilling its own source chart; to show segment and account bars there, use the Region and Segment filter chips.
 
 **1. Brush a time range.** Drag across a range of months on the trend chart to zoom in. Every other tile re-queries for just that slice of time:
 
-![Brushing a time range on the trend chart re-renders every other tile for that slice](assets/chart-action-brush-trend.gif)
+Clear **Months picked on trend** to restore the original Period selection and the full trend context.
 
 **2. Click a bar.** Click a bar in **Variance to Target by Region** to filter the rest of the dashboard to that region:
 
-![Clicking a region bar updates the heatmap, waterfall, and account tiles](assets/chart-action-click-bar.gif)
+The **Drill: region path** chip records the selected region. Clear that chip to remove the chart-click filter. The source region chart stays outside its own click targets.
 
 **3. Click a heatmap cell.** Click a cell in the heatmap to focus on that region and segment combination:
 
-![Clicking a heatmap cell filters the other tiles to that region and segment](assets/chart-action-click-heatmap.gif)
+The heatmap sends Region and Segment filters to the other scopes, leaving its own cells available for comparison. Clear the resulting filter chips before trying another action.
 
 ## Publish to a Role
 
@@ -443,8 +460,6 @@ In the dashboard toolbar, choose **Share > Publish as artifact**. The dialog not
 
 Add **DASHBOARD_DEMO_SALES_OPS** with **Can view** access. When this guide was tested, the role search box sometimes already contained `PUBLIC`. Clear it so the dashboard is shared only with the sales-ops role. Then select **Publish**.
 
-![Publish as artifact dialog with the sales-ops role added](assets/publish-as-artifact.jpg)
-
 The blue box at the top restates the security model: each viewer runs the dashboard with their own role's permissions. Under **Who has access**, your user is listed as **Owner**, and **DASHBOARD_DEMO_SALES_OPS** has **Can view**. Nothing is shared until you select **Publish**.
 
 A confirmation appears, and the toolbar button changes to **Publish changes**. Open **Share** again and check **Who has access**. During testing, `PUBLIC` was granted **Can view** on publish even though the dialog didn't show it beforehand. If `PUBLIC` is listed, select its trash icon so only the owner and **DASHBOARD_DEMO_SALES_OPS** remain.
@@ -457,7 +472,7 @@ After publishing, make edits in the Workspaces editor and use **Publish changes*
 
 In Snowflake CoWork, open **Artifacts**, select the **All** tab, and open **Revenue Pulse**. It shows the same tiles and filters as in Workspaces, with a follow-up box below. The docs describe what viewers can and can't do here in [Consuming a dashboard in Cowork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
 
-![Revenue Pulse opened from CoWork Artifacts](assets/cowork-artifact.jpg)
+![Current Revenue Pulse artifact in CoWork with KPI sparklines and the follow-up box](assets/cowork-artifact.png)
 
 The artifact opens with the same filter chips and KPI tiles you built in Workspaces, running on the default Q3 2026 period: $6.9M net revenue at 86.3% of target. The header shows when the artifact was last refreshed and has an **Open in workspace** link back to the source. The **Ask a follow-up about this dashboard** box sits at the bottom of the page.
 
@@ -471,11 +486,11 @@ Why is EMEA Enterprise behind target in Q3 2026? Quantify the drivers.
 
 CoWork opens a chat with the dashboard docked beside it. It answers from the dashboard's executed tile results: the heatmap and account table datasources.
 
-![CoWork follow-up chat with the dashboard docked](assets/cowork-follow-up.jpg)
+![Fresh CoWork follow-up showing 57.9% EMEA Enterprise attainment and the current dashboard docked beside it](assets/cowork-follow-up.png)
 
-The chat runs on the left, and the dashboard stays docked on the right, so you can check the answer against the tiles. The answer starts with the same numbers the heatmap shows: $1.07M of net revenue against a $1.85M target, a −$778.7K shortfall at 57.9% attainment. It then breaks the gap down by the driver sales ops recorded: a renewal delay at one account that booked $0 (≈ −$348.7K), contract downsizes at two accounts (≈ −$258.7K), discounts and service credits at two more (≈ −$182.0K), offset slightly by the one account above target (≈ +$10.7K).
+The chat runs on the left, and the dashboard stays docked on the right, so you can check the answer against the tiles. The captured response reports $1.07M of net revenue against a $1.85M target, a −$778.7K shortfall at 57.9% attainment. It separates the recorded renewal delay at one account that booked $0 from contract downsizes at two accounts and discounts and service credits at two more, including the offset from the account above target. Responses can vary; compare their figures with the expected data breakdown below and avoid treating recorded labels as proof of causation.
 
-Verified against SQL, the expected answer is:
+For the companion's synthetic data, the expected answer is:
 
 - A $778.7K shortfall at 57.9% attainment
 - Renewal delay: −$348.7K
@@ -485,7 +500,7 @@ Verified against SQL, the expected answer is:
 
 The parts sum to the total. Because the drivers come from `RECORDED_DRIVER`, they are recorded reasons, not inferred causes. A question such as "Will the renewal-delayed revenue recover in Q4?" can only be answered as a hypothesis, because the data ends in September 2026.
 
-For questions beyond what the tiles hold, open the Revenue Advisor agent in CoWork. It queries the semantic view directly and returns the same breakdown.
+For questions beyond what the tiles hold, open the Revenue Advisor agent in CoWork. It queries the semantic view directly. Check its answer against the breakdown above using the same period and filters; the dashboard follow-up does not automatically invoke this agent.
 
 ## Clean Up
 
