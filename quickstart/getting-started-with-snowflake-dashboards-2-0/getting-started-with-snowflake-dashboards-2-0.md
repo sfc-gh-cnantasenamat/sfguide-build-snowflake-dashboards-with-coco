@@ -44,7 +44,7 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-You'll build Revenue Pulse, a single-page revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. Brush the trend or click a region bar, and the related charts filter to match. Each build step shows a close-up of the chart it adds, and because Cortex Code generates the layout from your prompts, your version may look a little different.
+You'll build Revenue Pulse, a single-page revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. Brush the trend or click a region bar, and the related charts would filter to match. Each build step shows a close-up of the chart it adds, and because Cortex Code generates the layout from your prompts, your version may look a little different.
 
 ![Completed Revenue Pulse dashboard from summary cards through account details, including the driver donut and account bubble charts](assets/dashboard-complete.png)
 
