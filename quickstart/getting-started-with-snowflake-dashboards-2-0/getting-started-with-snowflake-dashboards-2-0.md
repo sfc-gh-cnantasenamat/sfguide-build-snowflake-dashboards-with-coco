@@ -46,7 +46,7 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 ### What You'll Build
 A single-page revenue dashboard with KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details. Optional donut and bubble charts add detail.
 
-Here is the completed reference with default Q3 2026 filters. This reduced overview shows the finished layout, including the table's initially displayed rows; readable component screenshots appear beside the build steps. Your generated layout may differ.
+Here's where you'll end up. On one page, Revenue Pulse takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. Brush the trend or click a region bar, and the related charts filter to match. Each build step shows a close-up of the chart it adds, and because Cortex Code generates the layout from your prompts, your version may look a little different.
 
 ![Completed Revenue Pulse dashboard from summary cards through account details, including the optional donut and bubble charts](assets/dashboard-complete.png)
 
