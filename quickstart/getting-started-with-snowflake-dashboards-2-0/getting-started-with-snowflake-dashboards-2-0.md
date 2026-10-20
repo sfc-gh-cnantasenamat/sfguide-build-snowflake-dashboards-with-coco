@@ -12,9 +12,9 @@ fork repo link: https://github.com/sfc-gh-cnantasenamat/getting-started-with-sno
 
 ## Overview
 
-It's Monday morning and revenue is behind target, but the dashboard, AI assistant, and sales-ops spreadsheet disagree on attainment. Each has its own metric logic, so the team spends the meeting reconciling numbers instead of investigating the shortfall.
+It's Monday morning and revenue is behind target. The BI dashboard says attainment is 86%, the AI assistant says 84%, and the sales-ops spreadsheet says something else. Each tool has its own copy of the metric logic, so the team spends the meeting reconciling numbers instead of asking why the quarter is slipping. Even once the numbers agree, finding the cause means paging through a multi-page dashboard and drilling down filter by filter.
 
-In this guide, you'll build **Revenue Pulse** to trace a revenue gap from company totals to regions, accounts, and recorded drivers, with a consistent basis for comparison. All data is synthetic: 54 accounts, 3 product lines, and 24 months through September 2026. Q3 revenue is up just 0.8% year over year and $1.09M behind target, with EMEA Enterprise the largest single miss.
+In this guide, you'll build **Revenue Pulse** to work through that morning check on a synthetic dataset: a fictional B2B software company with 54 accounts, 3 product lines, and 24 months of revenue through September 30, 2026. The data contains a story. Q3 2026 net revenue is barely up (0.8%) year over year and $1.09M behind target. EMEA Enterprise is the largest single miss, and APAC is behind too. Your task is to trace that shortfall from the company-wide total to the regions, accounts, and recorded drivers behind it, using a shared overview for the daily check and follow-up questions with a consistent basis for comparison.
 
 The workflow has three parts:
 
