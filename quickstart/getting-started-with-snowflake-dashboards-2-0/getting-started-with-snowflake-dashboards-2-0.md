@@ -287,7 +287,7 @@ After setup completes, give CoCo the exact source and period before asking for c
 
 ```text
 /dashboard
-Help me build a native Dashboards 2.0 dashboard in this workspace.
+Help me build a dashboard with Dashboards 2.0 natively in this workspace.
 First inspect REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW.
 Explain the revenue, target, variance, attainment, and gross-margin
 metrics, and the month, region, segment, product, account, and
