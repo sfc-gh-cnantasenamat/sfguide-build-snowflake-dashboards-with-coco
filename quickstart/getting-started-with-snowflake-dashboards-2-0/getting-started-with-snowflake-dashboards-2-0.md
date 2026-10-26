@@ -566,13 +566,14 @@ Validate the file and preserve the existing table and charts.
 
 #### Check Available Interactions
 
-Chart actions turn the charts themselves into filters: brush a month range on the trend, or click a region bar or heatmap cell, and the other tiles follow. They are how readers move from the Q3 headline to the slice behind it without touching the header filters. Because Dashboards 2.0 is in preview, first confirm the actions are enabled in your account. The companion includes brushing and click-to-filter; if your account lacks one, keep the filter chips for that view and don't advertise a control you haven't created and tested.
+Chart actions turn the charts themselves into filters: brush a month range on the trend, click a region bar or heatmap cell and the other tiles follow, or click down a region-segment-account hierarchy. They are how readers move from the Q3 headline to the slice behind it without touching the header filters. Because Dashboards 2.0 is in preview, first confirm the actions are enabled in your account. The companion includes brushing and click-to-filter; if your account lacks one, keep the filter chips for that view and don't advertise a control you haven't created and tested.
 
 **Prompt:**
 
 ```text
-Check whether native trend brushing, bar click-to-filter, and
-heatmap click-to-filter are supported for this dashboard.
+Check whether native trend brushing, bar click-to-filter,
+heatmap click-to-filter, and hierarchy drill-down are supported
+for this dashboard.
 Explain what is available and what is not. Do not edit the file yet,
 and do not substitute custom JavaScript for unsupported actions.
 ```
@@ -638,6 +639,32 @@ Expose clearable selections and validate the file.
 
 **Check:** Select EMEA Enterprise, confirm the other tiles show that slice, and then clear the selections. The full heatmap should remain available throughout.
 
+#### Drill Down a Hierarchy
+
+The region bar changes its detail level through the Region and Segment dropdowns. A [native hierarchy](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#defining-a-hierarchy) does this with clicks instead: the file defines the levels once, and a bar chart steps down them one click at a time, with a level trail for going back up. Hierarchy datasources can't read a semantic view, so this one query joins the base tables and repeats the semantic view's revenue and target formulas.
+
+**Prompt:**
+
+```text
+Add a native hierarchy named geo with three levels: Region, then
+Segment within region, then Account (key CUSTOMER_ID, shown as
+CUSTOMER_NAME). Add a horizontal bar chart titled Hierarchical
+Filtering: Variance by Region, Segment, and Account, on its own
+scope under the main scope, so the header filters and other chart
+actions still apply. Clicking a bar should drill one level down,
+and its level trail should drill back up. Hierarchy datasources
+can't use the semantic view, so join REVENUE_MONTHLY, CUSTOMERS,
+and PRODUCTS and reuse the semantic view's net revenue and target
+formulas. Place it above Account Detail. Keep the existing chart
+actions and validate the file.
+```
+
+**Expected output:** A `hierarchies` entry with three levels, a datasource bound to it, and a drillable bar chart with drill-down and drill-up actions. The existing chart actions are unchanged.
+
+**Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
+
+The first click on each bar can briefly show one long multicolored bar while the next level loads. This is the preview renderer redrawing the previous level; the chart settles when the data arrives.
+
 ### 13. Explain the Controls
 
 Finish with a compact layout and a short guide for the reader. Explain only interactions that survived your checks.
@@ -647,7 +674,8 @@ Finish with a compact layout and a short guide for the reader. Explain only inte
 ```text
 Arrange the dashboard as one page: header and a short
 Try Chart Actions text tile at the top, four KPI cards below,
-then trend and regional views, followed by driver and account detail.
+then trend and regional views, followed by driver views, the
+hierarchy chart, and account detail.
 In the text tile, describe only the actions we verified and how to
 clear their selections. If no chart actions are supported, title it
 Try Dashboard Filters instead and explain the filter chips.
@@ -675,7 +703,8 @@ Audit revenue_pulse_draft.dash without changing it.
 Validate its native file format and inspect every datasource SQL.
 Confirm that analytical queries use
 REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW,
-that ratios use aggregated amounts, and that labels match units.
+except the hierarchy datasource, whose formulas must match it.
+Check that ratios use aggregated amounts and that labels match units.
 Check Q3 2026 date boundaries, prior-year comparison dates,
 filter bindings, and any chart-action scopes.
 Run read-only comparison queries for all regions, EMEA, and
@@ -754,6 +783,7 @@ Test each action you added in step 12; for any your account doesn't support, the
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
 3. **Select a heatmap cell:** Other tiles filter to its region and segment; the source grid stays unchanged. Clear the resulting selections before another test.
+4. **Drill the hierarchy:** In **Hierarchical Filtering**, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. Use the level trail to return to **Region All**.
 
 Restore Q3 and clear all other selections before publishing.
 
