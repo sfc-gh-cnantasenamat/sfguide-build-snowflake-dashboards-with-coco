@@ -639,6 +639,8 @@ Expose clearable selections and validate the file.
 
 **Check:** Select EMEA Enterprise, confirm the other tiles show that slice, and then clear the selections. The full heatmap should remain available throughout.
 
+![Completed reference after selecting the EMEA Enterprise cell: Region EMEA and Segment Enterprise chips appear, and the scorecards show $1.1M net revenue, 57.9% attainment, and a variance of about −$779K](assets/heatmap-cell-filter.png)
+
 #### Drill Down a Hierarchy
 
 The region bar changes its detail level through the Region and Segment dropdowns. A [native hierarchy](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#defining-a-hierarchy) does this with clicks instead: the file defines the levels once, and a bar chart steps down them one click at a time, with a level trail for going back up. Hierarchy datasources can't read a semantic view, so this one query joins the base tables and repeats the semantic view's revenue and target formulas.
