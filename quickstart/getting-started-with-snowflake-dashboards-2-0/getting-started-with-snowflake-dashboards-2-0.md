@@ -663,7 +663,13 @@ actions and validate the file.
 
 **Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
 
-The first click on each bar can briefly show one long multicolored bar while the next level loads. This is the preview renderer redrawing the previous level; the chart settles when the data arrives.
+![Hierarchical Filtering chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All](assets/hierarchy-drill-region.png)
+
+![After clicking EMEA: Enterprise is about -$779K below target while SMB and Mid-market are near zero](assets/hierarchy-drill-segment.png)
+
+![After clicking Enterprise: six EMEA Enterprise accounts, led by Demo EMEA Enterprise 05 at about -$349K](assets/hierarchy-drill-account.png)
+
+A click on a bar can briefly show one long multicolored bar while the next level loads. This is the preview renderer redrawing the previous level; the chart settles when the data arrives.
 
 ### 13. Explain the Controls
 
