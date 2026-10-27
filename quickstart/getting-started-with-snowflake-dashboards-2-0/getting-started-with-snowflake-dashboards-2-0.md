@@ -657,13 +657,19 @@ actions still apply. Clicking a bar should drill one level down,
 and its level trail should drill back up. Hierarchy datasources
 can't use the semantic view, so join REVENUE_MONTHLY, CUSTOMERS,
 and PRODUCTS and reuse the semantic view's net revenue and target
-formulas. Put it on a new tab named Hierarchical Filtering. Keep the existing chart
-actions and validate the file.
+formulas. Put it on a new tab named Hierarchical Filtering. Right
+under the chart, add a table in the same scope that lists the
+accounts inside whatever bar the viewer drilled into: bind it to
+the geo hierarchy with hierarchy_rows but not hierarchy_key, so it
+always groups by account. Keep the existing chart actions and
+validate the file.
 ```
 
-**Expected output:** A `hierarchies` entry with three levels, a datasource bound to it, and a drillable bar chart with drill-down and drill-up actions. The existing chart actions are unchanged.
+**Expected output:** A `hierarchies` entry with three levels, two datasources bound to it, a drillable bar chart with drill-down and drill-up actions, and an account table below it in the same scope. The existing chart actions are unchanged.
 
-**Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
+The table's query uses `{{ hierarchy_rows('geo') }}` to keep only the rows under the drilled member and groups by account itself. Because it shares the chart's scope, every drill click re-runs it.
+
+**Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. The table below should follow: all accounts, then EMEA's 18, then the same six. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
 
 ![Hierarchical Filtering chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All](assets/hierarchy-drill-region.png)
 
@@ -683,7 +689,7 @@ Finish with a compact layout and a short guide for the reader. Explain only inte
 Arrange the dashboard in three tabs. On Overview: header and a
 short Try Chart Actions text tile at the top, four KPI cards below,
 then trend and regional views, followed by driver views. Put the
-hierarchy chart alone on a Hierarchical Filtering tab and the
+hierarchy chart and its account table on a Hierarchical Filtering tab and the
 account detail table alone on an Account Detail tab.
 In the text tile, describe only the actions we verified and how to
 clear their selections. If no chart actions are supported, title it
@@ -792,7 +798,7 @@ Test each action you added in step 12; for any your account doesn't support, the
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
 3. **Select a heatmap cell:** Other tiles filter to its region and segment; the source grid stays unchanged. Clear the resulting selections before another test.
-4. **Drill the hierarchy:** On the **Hierarchical Filtering** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. Use the level trail to return to **Region All**.
+4. **Drill the hierarchy:** On the **Hierarchical Filtering** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. The table under the chart lists the same accounts. Use the level trail to return to **Region All**.
 
 Restore Q3 and clear all other selections before publishing.
 
