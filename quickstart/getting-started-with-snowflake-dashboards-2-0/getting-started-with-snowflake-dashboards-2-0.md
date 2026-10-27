@@ -44,9 +44,9 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-You'll build Revenue Pulse, a three-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, and a variance waterfall, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab, a drillable chart and its account table on a **Hierarchical Chart** tab, and data lineage on a **Data Source** tab. Brush the trend or click a region bar, and the related charts would filter to match.
+You'll build Revenue Pulse, a four-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, and a variance waterfall, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab. A drillable bar chart with its account table sits on a **Hierarchical Chart** tab, and an expandable region-segment-customer table on a **Hierarchical Table** tab. The **Data Source** tab holds the data lineage and sample questions for CoWork. Brush the trend or click a region bar, and the related charts filter to match.
 
-![Overview tab of the completed Revenue Pulse dashboard, from summary cards through the driver donut and account bubble charts, with Hierarchical Chart and Data Source tabs alongside](assets/dashboard-complete.png)
+![Overview tab of the completed Revenue Pulse dashboard, from the header and summary cards through the driver donut and account bubble charts, with Hierarchical Chart, Hierarchical Table, and Data Source tabs alongside](assets/dashboard-complete.png)
 
 The architecture below shows how the dashboard and Revenue Advisor use the shared semantic view, and how viewers explore the published artifact in CoWork.
 
@@ -66,7 +66,7 @@ Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a l
 
 Run the supplied setup scripts, then send one authoring prompt at a time in the same Snowsight CoCo conversation. Review each change and complete its **Check** before continuing.
 
-The companion's `dashboards/revenue_pulse.dash` is the completed example used for this guide's screenshots and expected figures. Create your dashboard as `dashboards/revenue_pulse_draft.dash` so you can compare the two without overwriting the example. Generated layouts and wording can differ. If you prefer to explore the completed example first, open it and jump to **Explore with Filters**.
+The companion's `dashboards/revenue_pulse.dash` is the completed example used for this guide's screenshots and expected figures. `dashboards/revenue_pulse_extended.dash` is a longer variant of the same dashboard: it moves the trend and detail charts to a **Chart Actions** tab and adds a how-to tile beside each chart. Create your dashboard as `dashboards/revenue_pulse_draft.dash` so you can compare the two without overwriting the example. Generated layouts and wording can differ. If you prefer to explore the completed example first, open it and jump to **Explore with Filters**.
 
 The `/dashboard` skill was confirmed to load in Snowsight during a read-only check. The incremental authoring prompts below are suggested instructions, not a transcript of a completed end-to-end generation run. Validate the result in your account; a successful file check alone does not establish that its SQL or interactions are correct. Advanced chart actions depend on your account's enabled features.
 
@@ -495,9 +495,9 @@ Use supported native scorecards and validate the file.
 
 **Check:** Default Q3 revenue remains about $6.9M, with a 0.8% year-over-year increase. The sparklines end in September 2026 and contain 12 months, while the main cards still describe the quarter. Inspect the prior-year dates if the comparisons look wrong.
 
-The completed example below shows the four KPI sparklines and the dashboard header. It also includes the Chart Actions instructions added later in the walkthrough; your dashboard does not need to match its layout exactly.
+The completed example below shows the four KPI sparklines under the dashboard header, with the trend below them. Your dashboard does not need to match its layout exactly.
 
-![Completed Revenue Pulse example with four KPI sparklines and a Chart Actions tile](assets/dashboard-overview.png)
+![Completed Revenue Pulse example with the header, four KPI sparklines, and the start of the monthly trend](assets/dashboard-overview.png)
 
 ### 10. Add Detail Charts
 
@@ -627,55 +627,78 @@ The region bar changes its detail level through the Region and Segment dropdowns
 Add a native hierarchy named geo with three levels: Region, then
 Segment within region, then Account (key CUSTOMER_ID, shown as
 CUSTOMER_NAME). Add a horizontal bar chart titled Hierarchical
-Filtering: Variance by Region, Segment, and Account, on its own
+Chart: Variance by Region, Segment, and Account, on its own
 scope under the main scope, so the header filters and other chart
 actions still apply. Clicking a bar should drill one level down,
 and its level trail should drill back up. Hierarchy datasources
 can't use the semantic view, so join REVENUE_MONTHLY, CUSTOMERS,
 and PRODUCTS and reuse the semantic view's net revenue and target
-formulas. Put it on a new tab named Hierarchical Chart. Right
-under the chart, add a table in the same scope that lists the
+formulas. Put it on a new tab named Hierarchical Chart. Beside
+the chart, add a table in the same scope that lists the
 accounts inside whatever bar the viewer drilled into: bind it to
 the geo hierarchy with hierarchy_rows but not hierarchy_key, so it
 always groups by account. Keep the existing chart actions and
 validate the file.
 ```
 
-**Expected output:** A `hierarchies` entry with three levels, two datasources bound to it, a drillable bar chart with drill-down and drill-up actions, and an account table below it in the same scope. The existing chart actions are unchanged.
+**Expected output:** A `hierarchies` entry with three levels, two datasources bound to it, a drillable bar chart with drill-down and drill-up actions, and an account table beside it in the same scope. The existing chart actions are unchanged.
 
 The table's query uses `{{ hierarchy_rows('geo') }}` to keep only the rows under the drilled member and groups by account itself. Because it shares the chart's scope, every drill click re-runs it.
 
-**Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. The table below should follow: all accounts, then EMEA's 18, then the same six. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
+**Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. The table beside it should follow: all accounts, then EMEA's 18, then the same six. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
 
-![Hierarchical Chart chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All, and the account table below listing all regions' accounts](assets/hierarchy-drill-region.png)
+![Hierarchical Chart chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All, and the account table beside it listing all regions' accounts](assets/hierarchy-drill-region.png)
 
-![After clicking EMEA: Enterprise is about -$779K below target while SMB and Mid-market are near zero, and the table below now lists only EMEA accounts](assets/hierarchy-drill-segment.png)
+![After clicking EMEA: Enterprise is about -$779K below target while SMB and Mid-market are near zero, and the table beside it now lists only EMEA accounts](assets/hierarchy-drill-segment.png)
 
-![After clicking Enterprise: six EMEA Enterprise accounts, led by Demo EMEA Enterprise 05 at about -$349K, with the table below listing the same six accounts](assets/hierarchy-drill-account.png)
+![After clicking Enterprise: six EMEA Enterprise accounts, led by Demo EMEA Enterprise 05 at about -$349K, with the table beside it listing the same six accounts](assets/hierarchy-drill-account.png)
 
 A click on a bar can briefly show one long multicolored bar while the next level loads. This is the preview renderer redrawing the previous level; the chart settles when the data arrives.
 
-### 12. Explain the Controls
+#### Expand a Hierarchy Table
 
-Finish with a compact layout and a short guide for the reader. Explain only interactions that survived your checks.
+The same `geo` hierarchy can drive a table instead of a chart. Each row is a level member, and expanding a row reveals the level below it, so readers can compare regions, segments, and customers in one grid.
 
 **Prompt:**
 
 ```text
-Arrange the dashboard in three tabs. On Overview: header and a
-short Try Chart Actions text tile at the top, four KPI cards below,
-then trend and regional views, followed by driver views. Put the
-hierarchy chart and its account table on a Hierarchical Chart tab and the
-source note alone on a Data Source tab, with each field on its own line.
-In the text tile, describe only the actions we verified and how to
-clear their selections. If no chart actions are supported, title it
-Try Dashboard Filters instead and explain the filter chips.
-Keep labels readable and chart colours consistent. Preserve all
-SQL, filter bindings, and tile IDs while adjusting layout.
-Validate the file; do not publish or change sharing.
+Add a table titled Variance by Region, Segment, and Customer
+on a new tab named Hierarchical Table. Bind it to the geo hierarchy
+with hierarchy_key and hierarchy_rows so each row can be expanded
+from region to segment to customer. Show net revenue, target,
+signed variance in USD, and attainment percent for each row.
+Reuse the hierarchy chart's base query and apply all dashboard
+filters. Keep the existing tiles unchanged and validate the file.
 ```
 
-**Expected output:** Three tabs (Overview, Hierarchical Chart, and Data Source), with Overview ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
+**Expected output:** An expandable table on its own tab with one row per region, and segments and customers revealed on expand. Existing tiles are unchanged.
+
+**Check:** With Q3 and no other filters, EMEA shows about $1.83M net revenue against a $2.61M target (−$779.1K, 70.1%). Expand EMEA, then Enterprise, and the six EMEA Enterprise accounts should appear with the same variances as the hierarchy chart.
+
+![Completed reference hierarchy table at the region level: EMEA at 70.1% attainment, APAC at 83%, and Americas at 106.1%, each row expandable to segments and customers](assets/hierarchy-table.png)
+
+### 12. Explain the Controls
+
+Finish with a compact layout and short hints for the reader. Explain only interactions that survived your checks. If you prefer step-by-step help tiles beside each chart, compare your result with `dashboards/revenue_pulse_extended.dash`.
+
+**Prompt:**
+
+```text
+Arrange the dashboard in four tabs. On Overview: the header at the
+top, four KPI cards below, then the trend, regional views, and
+driver views. Put the hierarchy chart with its account table beside
+it on a Hierarchical Chart tab, and the hierarchy table on a
+Hierarchical Table tab. On a Data Source tab, put the source note,
+with each field on its own line, and beside it an Ask Revenue
+Advisor text tile with sample CoWork follow-up questions.
+Put a short action hint in each interactive chart's title, such as
+(Click a region to filter the other charts), and describe only
+actions we verified. Keep labels readable and chart colours
+consistent. Preserve all SQL, filter bindings, and tile IDs while
+adjusting layout. Validate the file; do not publish or change sharing.
+```
+
+**Expected output:** Four tabs (Overview, Hierarchical Chart, Hierarchical Table, and Data Source), with Overview ordered from summary to detail and short action hints in chart titles. Existing SQL, bindings, and tile IDs remain intact.
 
 **Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work. [Tabs](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#tabs) share one set of filters, so switch to **Hierarchical Chart** with Region = EMEA set and the account table should show only EMEA accounts. Only the open tab's tiles run their queries.
 
@@ -752,7 +775,7 @@ The waterfall in step 8 reconciles recorded drivers to the **−$1.09M** total v
 
 Set **Region = EMEA**. Revenue becomes approximately $1.8M, attainment 70.1%, variance −$779.1K, and gross margin 71.3%. The regional chart now shows segment bars, while the trend retains its 24-month history.
 
-![Updated Revenue Pulse dashboard filtered to EMEA with KPI sparklines and Chart Actions instructions](assets/filter-region-emea.png)
+![Revenue Pulse Overview filtered to EMEA: $1.8M net revenue, 70.1% attainment, a variance of about −$779K, and 71.3% gross margin](assets/filter-region-emea.png)
 
 ### Focus on Enterprise Accounts
 
@@ -774,7 +797,8 @@ Test each action you added in step 11; for any your account doesn't support, the
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
 3. **Select a heatmap cell:** Other tiles filter to its region and segment; the source grid stays unchanged. Clear the resulting selections before another test.
-4. **Drill the hierarchy:** On the **Hierarchical Chart** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. The table under the chart lists the same accounts. Use the level trail to return to **Region All**.
+4. **Drill the hierarchy:** On the **Hierarchical Chart** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. The table beside the chart lists the same accounts. Use the level trail to return to **Region All**.
+5. **Expand the hierarchy table:** On the **Hierarchical Table** tab, expand EMEA, then Enterprise, to see the same six accounts in one grid with net revenue, target, variance, and attainment.
 
 Restore Q3 and clear all other selections before publishing.
 
