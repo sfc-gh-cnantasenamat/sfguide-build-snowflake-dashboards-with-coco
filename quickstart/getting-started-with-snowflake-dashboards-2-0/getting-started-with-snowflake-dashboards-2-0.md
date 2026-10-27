@@ -44,9 +44,9 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-You'll build Revenue Pulse, a three-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab, with **Hierarchical Filtering** and **Account Detail** on tabs of their own. Brush the trend or click a region bar, and the related charts would filter to match.
+You'll build Revenue Pulse, a three-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, and a variance waterfall, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab, a drillable chart and its account table on a **Hierarchical Filtering** tab, and data lineage on a **Data Source** tab. Brush the trend or click a region bar, and the related charts would filter to match.
 
-![Overview tab of the completed Revenue Pulse dashboard, from summary cards through the driver donut and account bubble charts, with Hierarchical Filtering and Account Detail tabs alongside](assets/dashboard-complete.png)
+![Overview tab of the completed Revenue Pulse dashboard, from summary cards through the driver donut and account bubble charts, with Hierarchical Filtering and Data Source tabs alongside](assets/dashboard-complete.png)
 
 The architecture below shows how the dashboard and Revenue Advisor use the shared semantic view, and how viewers explore the published artifact in CoWork.
 
@@ -350,7 +350,7 @@ sharing, modify database objects, or commit or push to Git.
 
 The `.dash` file stores tiles, chart specifications, SQL datasources, filters, and layout as JSON. CoCo writes it and Workspaces renders it; no manual JSON editing or Python generator is needed.
 
-The completed reference's Q3 scorecard row is shown below. The sparklines and prior-year comparisons are added in step 10; at this stage, check the four main values.
+The completed reference's Q3 scorecard row is shown below. The sparklines and prior-year comparisons are added in step 9; at this stage, check the four main values.
 
 ![Completed reference scorecards: net revenue, target attainment, variance to target, and gross margin](assets/kpi-scorecards.png)
 
@@ -373,7 +373,7 @@ Keep the KPI cards unchanged and validate the updated file.
 
 **Check:** The chart contains 24 monthly points per complete series, ordered by date. It should expose the revenue drop below target in July 2026 rather than plotting only the three Q3 months.
 
-The completed reference uses an area fill beneath the revenue line, with a separate target line. The prompt above requests the same comparison as a line chart. No brush selection is active in this capture; step 12 shows the brushed state.
+The completed reference uses an area fill beneath the revenue line, with a separate target line. The prompt above requests the same comparison as a line chart. No brush selection is active in this capture; step 11 shows the brushed state.
 
 ![Completed reference monthly revenue area and target line across the full two-year history](assets/monthly-revenue-trend.png)
 
@@ -424,7 +424,7 @@ Keep existing tiles and filters intact, then validate the file.
 
 ![Completed reference regional variance bars for Q3, with EMEA and APAC below zero and Americas above zero](assets/regional-variance-bars.png)
 
-This unfiltered reference shows regional totals. Step 12 separates bar click-to-filter from dropdown-driven segment and account breakdowns.
+This unfiltered reference shows regional totals. Step 11 separates bar click-to-filter from dropdown-driven segment and account breakdowns.
 
 ### 7. Locate the Weakest Segment
 
@@ -448,31 +448,7 @@ Apply all four filters and validate the file.
 
 ![Completed reference Q3 attainment heatmap, with EMEA Enterprise at 57.9% and Americas Enterprise at 117%](assets/target-attainment-heatmap.png)
 
-### 8. Show the Accounts
-
-Add account records and recorded drivers as evidence behind each heatmap cell.
-
-**Prompt:**
-
-```text
-Add an account table with customer name, region, segment,
-recorded driver, net revenue, target, signed variance, and attainment.
-Aggregate using the semantic view and apply the dashboard filters.
-Sort the largest negative variances first. Retain all matching rows
-with scrolling or pagination rather than dropping rows with a top-N
-limit. If an account has multiple drivers, show separate rows and
-make that grain clear. Validate the file.
-```
-
-**Expected output:** A filtered account-and-driver table ordered by largest shortfall, with all matching rows accessible through scrolling or pagination.
-
-**Check:** Filter to EMEA and Enterprise. The table should expose the zero-revenue account and the other accounts behind the gap. Confirm its summed variance agrees with the filtered card before using it to explain the shortfall.
-
-The completed reference below shows the first Q3 account rows, sorted by variance, with **Show 41 more** for the remaining rows. It uses one row per account and a `TOP_DRIVER` column; the prompt above asks for separate account-driver rows when multiple drivers occur.
-
-![Completed reference account dataframe showing financial measures, recorded driver, and access to additional rows](assets/account-detail-table.png)
-
-### 9. Reconcile the Drivers
+### 8. Reconcile the Drivers
 
 Use a waterfall to reconcile signed driver contributions to total variance.
 
@@ -492,11 +468,11 @@ the recorded labels. Validate the file.
 
 **Check:** In EMEA Enterprise, the approximately -$348.7K, -$258.7K, -$182.0K, and +$10.7K contributions should reconcile to -$778.7K. Clear Region and Segment before moving on.
 
-The completed example below shows the unfiltered Q3 waterfall on the right. The donut on the left is added in step 11.
+The completed example below shows the unfiltered Q3 waterfall on the right. The donut on the left is added in step 10.
 
 ![Completed example's recorded-driver donut beside the variance waterfall](assets/driver-variance-breakdown.png)
 
-### 10. Add Comparisons and Sparklines
+### 9. Add Comparisons and Sparklines
 
 Once the totals are correct, add historical context to the cards. Keep the selected-period total separate from the monthly sparkline series.
 
@@ -523,9 +499,9 @@ The completed example below shows the four KPI sparklines and the dashboard head
 
 ![Completed Revenue Pulse example with four KPI sparklines and a Chart Actions tile](assets/dashboard-overview.png)
 
-### 11. Add Detail Charts
+### 10. Add Detail Charts
 
-The waterfall and table show what moved; these two charts show how much and where. The donut compares driver magnitudes, and the bubble chart places each account by target and attainment. Send them separately so each can be reviewed on its own.
+The waterfall shows what moved; these two charts show how much and where. The donut compares driver magnitudes, and the bubble chart places each account by target and attainment. Send them separately so each can be reviewed on its own.
 
 #### Compare Driver Magnitudes
 
@@ -540,7 +516,7 @@ Keep labels readable; use a legend if in-ring labels do not fit.
 Validate the file.
 ```
 
-**Expected output:** A donut sized by absolute variance, with signed values and an encoding note. See the completed example beside the waterfall in step 9.
+**Expected output:** A donut sized by absolute variance, with signed values and an encoding note. See the completed example beside the waterfall in step 8.
 
 **Check:** A positive contribution must remain positive in its label, even though slice area is nonnegative. Do not use the donut's area to claim how much of the net gap a driver explains.
 
@@ -553,16 +529,16 @@ Add an account bubble chart with total target on the horizontal
 axis and attainment on the vertical axis. Use net revenue for
 bubble size and region for colour. Add a 100% attainment reference
 line and account names in tooltips. Apply all dashboard filters.
-Validate the file and preserve the existing table and charts.
+Validate the file and preserve the existing charts.
 ```
 
 **Expected output:** Account bubbles positioned by target and attainment, sized by revenue, and colored by region, with account tooltips and a 100% reference line.
 
-**Check:** Accounts below the reference line are behind target. Tooltips should let you locate the same accounts in the table; zero-revenue accounts may have zero-sized bubbles, so retain the table for completeness.
+**Check:** Accounts below the reference line are behind target. Tooltips name each account; zero-revenue accounts may have zero-sized bubbles, so use the account table on the Hierarchical Filtering tab for completeness.
 
 ![Completed reference Q3 account bubbles, colored by region and sized by revenue, with a dashed 100% attainment line](assets/account-attainment-bubbles.png)
 
-### 12. Add Chart Actions
+### 11. Add Chart Actions
 
 #### Check Available Interactions
 
@@ -671,15 +647,15 @@ The table's query uses `{{ hierarchy_rows('geo') }}` to keep only the rows under
 
 **Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. The table below should follow: all accounts, then EMEA's 18, then the same six. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
 
-![Hierarchical Filtering chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All](assets/hierarchy-drill-region.png)
+![Hierarchical Filtering chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All, and the account table below listing all regions' accounts](assets/hierarchy-drill-region.png)
 
-![After clicking EMEA: Enterprise is about -$779K below target while SMB and Mid-market are near zero](assets/hierarchy-drill-segment.png)
+![After clicking EMEA: Enterprise is about -$779K below target while SMB and Mid-market are near zero, and the table below now lists only EMEA accounts](assets/hierarchy-drill-segment.png)
 
-![After clicking Enterprise: six EMEA Enterprise accounts, led by Demo EMEA Enterprise 05 at about -$349K](assets/hierarchy-drill-account.png)
+![After clicking Enterprise: six EMEA Enterprise accounts, led by Demo EMEA Enterprise 05 at about -$349K, with the table below listing the same six accounts](assets/hierarchy-drill-account.png)
 
 A click on a bar can briefly show one long multicolored bar while the next level loads. This is the preview renderer redrawing the previous level; the chart settles when the data arrives.
 
-### 13. Explain the Controls
+### 12. Explain the Controls
 
 Finish with a compact layout and a short guide for the reader. Explain only interactions that survived your checks.
 
@@ -690,7 +666,7 @@ Arrange the dashboard in three tabs. On Overview: header and a
 short Try Chart Actions text tile at the top, four KPI cards below,
 then trend and regional views, followed by driver views. Put the
 hierarchy chart and its account table on a Hierarchical Filtering tab and the
-account detail table alone on an Account Detail tab.
+source note alone on a Data Source tab, with each field on its own line.
 In the text tile, describe only the actions we verified and how to
 clear their selections. If no chart actions are supported, title it
 Try Dashboard Filters instead and explain the filter chips.
@@ -699,13 +675,13 @@ SQL, filter bindings, and tile IDs while adjusting layout.
 Validate the file; do not publish or change sharing.
 ```
 
-**Expected output:** Three tabs (Overview, Hierarchical Filtering, and Account Detail), with Overview ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
+**Expected output:** Three tabs (Overview, Hierarchical Filtering, and Data Source), with Overview ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
 
-**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work. [Tabs](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#tabs) share one set of filters, so switch to **Account Detail** with Region = EMEA set and the table should show only EMEA accounts. Only the open tab's tiles run their queries.
+**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work. [Tabs](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#tabs) share one set of filters, so switch to **Hierarchical Filtering** with Region = EMEA set and the account table should show only EMEA accounts. Only the open tab's tiles run their queries.
 
 ## Validate the Dashboard
 
-### 14. Audit the Generated Result
+### 13. Audit the Generated Result
 
 #### Review Queries and Results
 
@@ -740,7 +716,7 @@ If you find a problem, give CoCo the observed behaviour and one expected outcome
 
 ```text
 My dashboard's Net Revenue card does not change when
-I select EMEA, although the account table does. Inspect that card's
+I select EMEA, although the heatmap does. Inspect that card's
 datasource and filter bindings. Fix only the affected card or binding,
 preserve the other tiles and IDs, and validate the file. Explain
 the change so I can rerun the EMEA check. Do not change source data.
@@ -756,7 +732,7 @@ Open `dashboards/revenue_pulse.dash` to compare the completed example with your 
 
 ## Explore with Filters
 
-Use this section to check your dashboard against the completed example. The numerical checks use the same synthetic data, Q3 period, and stated filters. If your account doesn't support one of the chart actions from step 12, skip that check or open the completed example to try it.
+Use this section to check your dashboard against the completed example. The numerical checks use the same synthetic data, Q3 period, and stated filters. If your account doesn't support one of the chart actions from step 11, skip that check or open the completed example to try it.
 
 ### Review the Q3 Overview
 
@@ -770,7 +746,7 @@ With the default Q3 2026 period, the KPI row shows net revenue of **$6.9M**, up 
 
 The Q3 heatmap in step 7 highlights **EMEA Enterprise at 57.9% attainment** and all three APAC segments below target. Americas Enterprise leads at 117%. These reference screenshots use Q3 with no region, segment, or product filter.
 
-The waterfall in step 9 reconciles recorded drivers to the **−$1.09M** total variance. The bubble chart in step 11 helps locate large-target accounts below the 100% attainment line. Bubble size represents net revenue; use the account table to inspect the zero-revenue account.
+The waterfall in step 8 reconciles recorded drivers to the **−$1.09M** total variance. The bubble chart in step 10 helps locate large-target accounts below the 100% attainment line. Bubble size represents net revenue; use the account table to inspect the zero-revenue account.
 
 ### Filter to EMEA
 
@@ -780,7 +756,7 @@ Set **Region = EMEA**. Revenue becomes approximately $1.8M, attainment 70.1%, va
 
 ### Focus on Enterprise Accounts
 
-Add **Segment = Enterprise** and look at the account table. One account has zero revenue in the quarter, and four others are well under target. The drivers chart shows what sales ops recorded for EMEA Enterprise in Q3:
+Add **Segment = Enterprise** and open the account table on the **Hierarchical Filtering** tab. One account has zero revenue in the quarter, and four others are well under target. The drivers chart shows what sales ops recorded for EMEA Enterprise in Q3:
 
 | Recorded driver | Variance |
 |---|---|
@@ -793,7 +769,7 @@ Together these sum to the segment's −$778.7K gap. Clear Region and Segment to 
 
 ### Chart Actions
 
-Test each action you added in step 12; for any your account doesn't support, the header filters remain the fallback. The completed example includes these actions:
+Test each action you added in step 11; for any your account doesn't support, the header filters remain the fallback. The completed example includes these actions:
 
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
