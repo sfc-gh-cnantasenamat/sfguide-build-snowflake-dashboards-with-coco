@@ -55,7 +55,7 @@ The architecture below shows how the dashboard and Revenue Advisor use the share
 ### Prerequisites
 - Access to a [Snowflake account](https://signup.snowflake.com/?utm_source=snowflake-devrel&utm_medium=developer-guides&utm_cta=developer-guides)
 - A role that can create databases, API integrations, semantic views, agents, and roles (this guide uses `ACCOUNTADMIN`)
-- Access to [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) (private preview; confirm enrollment with your account team), Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account
+- Access to [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) (public preview), Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account
 - A role with the `MANAGE ACCESS ON DASHBOARD ARTIFACTS` privilege, which is needed to publish dashboards as artifacts and choose who can view them. It is [granted to `PUBLIC` by default](https://docs.snowflake.com/en/release-notes/bcr-bundles/un-bundled/bcr-manage-access-dashboard-artifacts) unless your administrator revoked it
 
 Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
