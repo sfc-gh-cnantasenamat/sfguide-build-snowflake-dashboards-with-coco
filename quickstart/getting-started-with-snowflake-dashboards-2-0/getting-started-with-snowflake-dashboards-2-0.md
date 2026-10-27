@@ -44,9 +44,9 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-You'll build Revenue Pulse, a three-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, and a variance waterfall, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab, a drillable chart and its account table on a **Hierarchical Filtering** tab, and data lineage on a **Data Source** tab. Brush the trend or click a region bar, and the related charts would filter to match.
+You'll build Revenue Pulse, a three-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, and a variance waterfall, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab, a drillable chart and its account table on a **Hierarchical Chart** tab, and data lineage on a **Data Source** tab. Brush the trend or click a region bar, and the related charts would filter to match.
 
-![Overview tab of the completed Revenue Pulse dashboard, from summary cards through the driver donut and account bubble charts, with Hierarchical Filtering and Data Source tabs alongside](assets/dashboard-complete.png)
+![Overview tab of the completed Revenue Pulse dashboard, from summary cards through the driver donut and account bubble charts, with Hierarchical Chart and Data Source tabs alongside](assets/dashboard-complete.png)
 
 The architecture below shows how the dashboard and Revenue Advisor use the shared semantic view, and how viewers explore the published artifact in CoWork.
 
@@ -534,7 +534,7 @@ Validate the file and preserve the existing charts.
 
 **Expected output:** Account bubbles positioned by target and attainment, sized by revenue, and colored by region, with account tooltips and a 100% reference line.
 
-**Check:** Accounts below the reference line are behind target. Tooltips name each account; zero-revenue accounts may have zero-sized bubbles, so use the account table on the Hierarchical Filtering tab for completeness.
+**Check:** Accounts below the reference line are behind target. Tooltips name each account; zero-revenue accounts may have zero-sized bubbles, so use the account table on the Hierarchical Chart tab for completeness.
 
 ![Completed reference Q3 account bubbles, colored by region and sized by revenue, with a dashed 100% attainment line](assets/account-attainment-bubbles.png)
 
@@ -633,7 +633,7 @@ actions still apply. Clicking a bar should drill one level down,
 and its level trail should drill back up. Hierarchy datasources
 can't use the semantic view, so join REVENUE_MONTHLY, CUSTOMERS,
 and PRODUCTS and reuse the semantic view's net revenue and target
-formulas. Put it on a new tab named Hierarchical Filtering. Right
+formulas. Put it on a new tab named Hierarchical Chart. Right
 under the chart, add a table in the same scope that lists the
 accounts inside whatever bar the viewer drilled into: bind it to
 the geo hierarchy with hierarchy_rows but not hierarchy_key, so it
@@ -647,7 +647,7 @@ The table's query uses `{{ hierarchy_rows('geo') }}` to keep only the rows under
 
 **Check:** Click EMEA, then Enterprise. The bars should go from three regions to EMEA's segments (Enterprise about −$778.7K) to six EMEA Enterprise accounts. The table below should follow: all accounts, then EMEA's 18, then the same six. Use the level trail to go back to **Region All**. Then set Region = APAC in the header: the chart should drill from APAC only.
 
-![Hierarchical Filtering chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All, and the account table below listing all regions' accounts](assets/hierarchy-drill-region.png)
+![Hierarchical Chart chart at the Region level: EMEA and APAC bars below target, Americas above, with the level trail reading Region All, and the account table below listing all regions' accounts](assets/hierarchy-drill-region.png)
 
 ![After clicking EMEA: Enterprise is about -$779K below target while SMB and Mid-market are near zero, and the table below now lists only EMEA accounts](assets/hierarchy-drill-segment.png)
 
@@ -665,7 +665,7 @@ Finish with a compact layout and a short guide for the reader. Explain only inte
 Arrange the dashboard in three tabs. On Overview: header and a
 short Try Chart Actions text tile at the top, four KPI cards below,
 then trend and regional views, followed by driver views. Put the
-hierarchy chart and its account table on a Hierarchical Filtering tab and the
+hierarchy chart and its account table on a Hierarchical Chart tab and the
 source note alone on a Data Source tab, with each field on its own line.
 In the text tile, describe only the actions we verified and how to
 clear their selections. If no chart actions are supported, title it
@@ -675,9 +675,9 @@ SQL, filter bindings, and tile IDs while adjusting layout.
 Validate the file; do not publish or change sharing.
 ```
 
-**Expected output:** Three tabs (Overview, Hierarchical Filtering, and Data Source), with Overview ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
+**Expected output:** Three tabs (Overview, Hierarchical Chart, and Data Source), with Overview ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
 
-**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work. [Tabs](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#tabs) share one set of filters, so switch to **Hierarchical Filtering** with Region = EMEA set and the account table should show only EMEA accounts. Only the open tab's tiles run their queries.
+**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work. [Tabs](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#tabs) share one set of filters, so switch to **Hierarchical Chart** with Region = EMEA set and the account table should show only EMEA accounts. Only the open tab's tiles run their queries.
 
 ## Validate the Dashboard
 
@@ -756,7 +756,7 @@ Set **Region = EMEA**. Revenue becomes approximately $1.8M, attainment 70.1%, va
 
 ### Focus on Enterprise Accounts
 
-Add **Segment = Enterprise** and open the account table on the **Hierarchical Filtering** tab. One account has zero revenue in the quarter, and four others are well under target. The drivers chart shows what sales ops recorded for EMEA Enterprise in Q3:
+Add **Segment = Enterprise** and open the account table on the **Hierarchical Chart** tab. One account has zero revenue in the quarter, and four others are well under target. The drivers chart shows what sales ops recorded for EMEA Enterprise in Q3:
 
 | Recorded driver | Variance |
 |---|---|
@@ -774,7 +774,7 @@ Test each action you added in step 11; for any your account doesn't support, the
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
 3. **Select a heatmap cell:** Other tiles filter to its region and segment; the source grid stays unchanged. Clear the resulting selections before another test.
-4. **Drill the hierarchy:** On the **Hierarchical Filtering** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. The table under the chart lists the same accounts. Use the level trail to return to **Region All**.
+4. **Drill the hierarchy:** On the **Hierarchical Chart** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. The table under the chart lists the same accounts. Use the level trail to return to **Region All**.
 
 Restore Q3 and clear all other selections before publishing.
 
