@@ -44,9 +44,9 @@ A morning revenue check fits that last description, so this guide uses a dashboa
 - How to ask follow-up questions about a dashboard in CoWork, and keep recorded drivers separate from hypotheses
 
 ### What You'll Build
-You'll build Revenue Pulse, a single-page revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. Brush the trend or click a region bar, and the related charts would filter to match.
+You'll build Revenue Pulse, a three-tab revenue dashboard that takes you from the Q3 2026 headline numbers down to the regions, segments, and accounts behind the $1.09M gap. It combines KPI sparklines, a monthly trend, regional bars, a heatmap, a variance waterfall, and account details, plus a driver donut and an account attainment bubble chart. The core charts sit on an **Overview** tab, with **Hierarchical Filtering** and **Account Detail** on tabs of their own. Brush the trend or click a region bar, and the related charts would filter to match.
 
-![Completed Revenue Pulse dashboard from summary cards through account details, including the driver donut and account bubble charts](assets/dashboard-complete.png)
+![Overview tab of the completed Revenue Pulse dashboard, from summary cards through the driver donut and account bubble charts, with Hierarchical Filtering and Account Detail tabs alongside](assets/dashboard-complete.png)
 
 The architecture below shows how the dashboard and Revenue Advisor use the shared semantic view, and how viewers explore the published artifact in CoWork.
 
@@ -657,7 +657,7 @@ actions still apply. Clicking a bar should drill one level down,
 and its level trail should drill back up. Hierarchy datasources
 can't use the semantic view, so join REVENUE_MONTHLY, CUSTOMERS,
 and PRODUCTS and reuse the semantic view's net revenue and target
-formulas. Place it above Account Detail. Keep the existing chart
+formulas. Put it on a new tab named Hierarchical Filtering. Keep the existing chart
 actions and validate the file.
 ```
 
@@ -680,10 +680,11 @@ Finish with a compact layout and a short guide for the reader. Explain only inte
 **Prompt:**
 
 ```text
-Arrange the dashboard as one page: header and a short
-Try Chart Actions text tile at the top, four KPI cards below,
-then trend and regional views, followed by driver views, the
-hierarchy chart, and account detail.
+Arrange the dashboard in three tabs. On Overview: header and a
+short Try Chart Actions text tile at the top, four KPI cards below,
+then trend and regional views, followed by driver views. Put the
+hierarchy chart alone on a Hierarchical Filtering tab and the
+account detail table alone on an Account Detail tab.
 In the text tile, describe only the actions we verified and how to
 clear their selections. If no chart actions are supported, title it
 Try Dashboard Filters instead and explain the filter chips.
@@ -692,9 +693,9 @@ SQL, filter bindings, and tile IDs while adjusting layout.
 Validate the file; do not publish or change sharing.
 ```
 
-**Expected output:** A single-page layout ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
+**Expected output:** Three tabs (Overview, Hierarchical Filtering, and Account Detail), with Overview ordered from summary to detail, with concise instructions for verified controls and reset actions. Existing SQL, bindings, and tile IDs remain intact.
 
-**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work.
+**Check:** Read the dashboard at your normal browser size. Labels should fit, legends should explain units and colours, and the instructions should match the controls that actually work. [Tabs](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards#tabs) share one set of filters, so switch to **Account Detail** with Region = EMEA set and the table should show only EMEA accounts. Only the open tab's tiles run their queries.
 
 ## Validate the Dashboard
 
@@ -791,7 +792,7 @@ Test each action you added in step 12; for any your account doesn't support, the
 1. **Brush months:** Drag a range on the trend, then clear **Months picked on trend** to restore Period and the full history.
 2. **Select a region bar:** Other tiles filter to that region; the source bars remain visible. Clear **Drill: region path** to reset. Use the Region and Segment dropdowns, rather than bar clicks, to change the source chart's detail level.
 3. **Select a heatmap cell:** Other tiles filter to its region and segment; the source grid stays unchanged. Clear the resulting selections before another test.
-4. **Drill the hierarchy:** In **Hierarchical Filtering**, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. Use the level trail to return to **Region All**.
+4. **Drill the hierarchy:** On the **Hierarchical Filtering** tab, click EMEA, then Enterprise, to reach its six accounts; the largest miss is Demo EMEA Enterprise 05 at −$348.7K. Use the level trail to return to **Region All**.
 
 Restore Q3 and clear all other selections before publishing.
 
