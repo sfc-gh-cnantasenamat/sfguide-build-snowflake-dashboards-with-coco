@@ -52,7 +52,7 @@ The architecture below shows how the dashboard and Revenue Advisor use the share
 
 ![Architecture: the Git repo and setup script feed a semantic view that both the Cortex Agent and the dashboard query; the dashboard is published to a role and explored in CoWork](assets/architecture.png)
 
-### Prerequisites
+### What You'll Need
 - Access to a [Snowflake account](https://signup.snowflake.com/?utm_source=snowflake-devrel&utm_medium=developer-guides&utm_cta=developer-guides)
 - A role that can create databases, API integrations, semantic views, agents, and roles (this guide uses `ACCOUNTADMIN`)
 - Access to [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) (public preview), Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account
