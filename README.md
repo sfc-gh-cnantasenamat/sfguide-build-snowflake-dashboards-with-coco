@@ -1,4 +1,4 @@
-# Getting Started with Snowflake Dashboards
+# Build Snowflake Dashboards with CoCo
 
 Source for the Snowflake developer guide (quickstart) by Chanin Nantasenamat.
 

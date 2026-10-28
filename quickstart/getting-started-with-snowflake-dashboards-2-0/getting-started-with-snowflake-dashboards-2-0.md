@@ -2,13 +2,13 @@ author: Chanin Nantasenamat
 id: getting-started-with-snowflake-dashboards-2-0
 categories: snowflake-site:taxonomy/solution-center/certification/quickstart, snowflake-site:taxonomy/product/analytics, snowflake-site:taxonomy/product/ai
 language: en
-summary: Get started with Snowflake Dashboards using step-by-step Cortex Code prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
+summary: Use step-by-step Cortex Code (CoCo) prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
 environments: web
 status: Published
 feedback link: https://github.com/Snowflake-Labs/sfquickstarts/issues
 fork repo link: https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0
 
-# Getting Started with Snowflake Dashboards
+# Build Snowflake Dashboards with CoCo
 
 ## Overview
 
