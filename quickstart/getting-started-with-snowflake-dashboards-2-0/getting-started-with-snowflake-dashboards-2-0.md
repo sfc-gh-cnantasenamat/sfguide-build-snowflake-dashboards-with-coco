@@ -868,7 +868,7 @@ After publishing, make edits in the Workspaces editor and use **Publish changes*
 
 In Snowflake CoWork, open **Artifacts**, select the **All** tab, and open the **Revenue Pulse** dashboard you published. If you published more than one version, use the link copied from the intended dashboard's Share dialog to open the correct artifact. It shows the published tiles and filters, with a follow-up box below. The docs describe what viewers can and can't do here in [Consuming a dashboard in Cowork](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards).
 
-![Current Revenue Pulse artifact in CoWork with KPI sparklines and the follow-up box](assets/cowork-artifact.png)
+![Current Revenue Pulse artifact in CoWork with filters, page tabs, KPI sparklines, and the follow-up box](assets/cowork-artifact.png)
 
 Confirm the artifact's filters and totals match your Q3 baseline. The **Ask a follow-up about this dashboard** box sits below the tiles.
 
