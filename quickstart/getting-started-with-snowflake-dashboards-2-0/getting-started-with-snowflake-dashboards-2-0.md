@@ -576,7 +576,7 @@ Period and the trend's full 24-month context. Validate the file.
 
 **Check:** Brush a range outside Q3. Tiles should show that range rather than an empty intersection with Q3. Clear the brush and verify that the Q3 totals return.
 
-![Completed reference trend brushed from late December 2025 to mid-August 2026: the tile shows a clearable Filtering chip, the axis zooms to those months, and the bars and heatmap recalculate for the range](assets/trend-brush-active.png)
+![Completed reference trend brushed from late March 2025 to late June 2026: the tile shows a clearable Filtering chip, the axis zooms to those months, and the scorecards, bars, and heatmap recalculate for the range](assets/trend-brush-active.png)
 
 In the completed reference, the brush appears as a **Filtering** chip inside the trend tile. The scorecards, bars, and heatmap recalculate for the brushed months, and the header filters keep their saved values. Your build may surface the brush as the **Months picked on trend** chip instead, as the prompt requests; check whichever control your dashboard shows.
 
