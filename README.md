@@ -1,4 +1,4 @@
-# Getting Started with Snowflake Dashboards 2.0
+# Getting Started with Snowflake Dashboards
 
 Source for the Snowflake developer guide (quickstart) by Chanin Nantasenamat.
 

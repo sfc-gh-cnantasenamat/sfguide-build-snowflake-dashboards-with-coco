@@ -2,13 +2,13 @@ author: Chanin Nantasenamat
 id: getting-started-with-snowflake-dashboards-2-0
 categories: snowflake-site:taxonomy/solution-center/certification/quickstart, snowflake-site:taxonomy/product/analytics, snowflake-site:taxonomy/product/ai
 language: en
-summary: Get started with Snowflake Dashboards 2.0 using step-by-step Cortex Code prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
+summary: Get started with Snowflake Dashboards using step-by-step Cortex Code prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
 environments: web
 status: Published
 feedback link: https://github.com/Snowflake-Labs/sfquickstarts/issues
 fork repo link: https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0
 
-# Getting Started with Snowflake Dashboards 2.0
+# Getting Started with Snowflake Dashboards
 
 ## Overview
 
@@ -19,20 +19,20 @@ In this guide, you'll build **Revenue Pulse** to work through that morning check
 The workflow has four parts:
 
 1. **A [Cortex Agent](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)** that answers plain-language revenue questions through Cortex Analyst.
-2. **A [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) dashboard** that you build with Cortex Code prompts for the team's daily revenue check.
+2. **A [Snowflake Dashboards](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) dashboard** that you build with Cortex Code prompts for the team's daily revenue check.
 3. **A shared [semantic view](https://docs.snowflake.com/en/user-guide/views-semantic/overview)** that defines their joins, dimensions, and metrics. Compare results using the same period and filters.
 4. **A published dashboard in [Snowflake CoWork](https://docs.snowflake.com/en/user-guide/snowflake-cortex/snowflake-cowork)** that you share with a sales-ops role and ask follow-up questions about. Dashboard follow-up uses tile results and context; it does not automatically invoke the separate Revenue Advisor agent.
 
-### When to Use Dashboards 2.0
+### When to Use Snowflake Dashboards
 Snowflake gives you several ways to present data, and each fits a different job:
 
 - **HTML reports** suit one-off narrative analyses that are snapshots.
 - **Streamlit** and **App Runtime** are for interactive tools and production apps, and they take more code to build and maintain.
-- **Dashboards 2.0** sits in between. It is built for recurring KPI monitoring on live, governed queries, with filters, drilldown, and conversational follow-up, at a low build cost.
+- **Snowflake Dashboards** sits in between. It is built for recurring KPI monitoring on live, governed queries, with filters, drilldown, and conversational follow-up, at a low build cost.
 
 A morning revenue check fits that last description, so this guide uses a dashboard.
 
-![HTML reports, Dashboards 2.0, Streamlit, and App Runtime positioned by build effort and interactivity](assets/when-to-use-what.png)
+![HTML reports, Snowflake Dashboards, Streamlit, and App Runtime positioned by build effort and interactivity](assets/when-to-use-what.png)
 
 ### What You'll Learn
 - How to use the Snowsight Cortex Code `/dashboard` skill and refine a dashboard one prompt at a time
@@ -55,7 +55,7 @@ The architecture below shows how the dashboard and Revenue Advisor use the share
 ### What You'll Need
 - Access to a [Snowflake account](https://signup.snowflake.com/?utm_source=snowflake-devrel&utm_medium=developer-guides&utm_cta=developer-guides)
 - A role that can create databases, API integrations, semantic views, agents, and roles (this guide uses `ACCOUNTADMIN`)
-- Access to [Dashboards 2.0](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) (public preview), Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account
+- Access to [Snowflake Dashboards](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) (public preview), Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account
 - A role with the `MANAGE ACCESS ON DASHBOARD ARTIFACTS` privilege, which is needed to publish dashboards as artifacts and choose who can view them. It is [granted to `PUBLIC` by default](https://docs.snowflake.com/en/release-notes/bcr-bundles/un-bundled/bcr-manage-access-dashboard-artifacts) unless your administrator revoked it
 
 Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
@@ -107,7 +107,7 @@ CREATE DATABASE IF NOT EXISTS REVENUE_PULSE_DB
   COMMENT = 'Revenue Pulse developer guide (synthetic data). Safe to drop after the guide.';
 
 CREATE SCHEMA IF NOT EXISTS REVENUE_PULSE_DB.DASHBOARD_DEMO
-  COMMENT = 'Revenue Pulse Dashboards 2.0 demo (synthetic data)';
+  COMMENT = 'Revenue Pulse Snowflake Dashboards demo (synthetic data)';
 
 CREATE API INTEGRATION IF NOT EXISTS REVENUE_PULSE_GIT_API
   API_PROVIDER = git_https_api
@@ -287,7 +287,7 @@ After setup completes, give CoCo the exact source and period before asking for c
 
 ```text
 /dashboard
-Help me build a dashboard with Dashboards 2.0 natively in this workspace.
+Help me build a dashboard with Snowflake Dashboards natively in this workspace.
 First inspect REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_SEMANTIC_VIEW.
 Explain the revenue, target, variance, attainment, and gross-margin
 metrics, and the month, region, segment, product, account, and
@@ -542,7 +542,7 @@ Validate the file and preserve the existing charts.
 
 #### Check Available Interactions
 
-Chart actions turn the charts themselves into filters: brush a month range on the trend, click a region bar or heatmap cell and the other tiles follow, or click down a region-segment-account hierarchy. They are how readers move from the Q3 headline to the slice behind it without touching the header filters. Because Dashboards 2.0 is in preview, first confirm the actions are enabled in your account. The companion includes brushing and click-to-filter; if your account lacks one, keep the filter chips for that view and don't advertise a control you haven't created and tested.
+Chart actions turn the charts themselves into filters: brush a month range on the trend, click a region bar or heatmap cell and the other tiles follow, or click down a region-segment-account hierarchy. They are how readers move from the Q3 headline to the slice behind it without touching the header filters. Because Snowflake Dashboards is in preview, first confirm the actions are enabled in your account. The companion includes brushing and click-to-filter; if your account lacks one, keep the filter chips for that view and don't advertise a control you haven't created and tested.
 
 **Prompt:**
 
