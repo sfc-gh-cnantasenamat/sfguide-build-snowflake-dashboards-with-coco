@@ -1,12 +1,12 @@
 author: Chanin Nantasenamat
-id: getting-started-with-snowflake-dashboards-2-0
+id: build-snowflake-dashboards-with-coco
 categories: snowflake-site:taxonomy/solution-center/certification/quickstart, snowflake-site:taxonomy/product/analytics, snowflake-site:taxonomy/product/ai
 language: en
 summary: Use step-by-step Cortex Code (CoCo) prompts to build, refine, and check a revenue dashboard, then publish it and explore it in CoWork.
 environments: web
 status: Published
 feedback link: https://github.com/Snowflake-Labs/sfquickstarts/issues
-fork repo link: https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0
+fork repo link: https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards
 
 # Build Snowflake Dashboards with CoCo
 
@@ -58,7 +58,7 @@ The architecture below shows how the dashboard and Revenue Advisor use the share
 - Access to [Snowflake Dashboards](https://docs.snowflake.com/en/LIMITEDACCESS/cowork-dashboards) (public preview), Cortex Code in Snowsight Workspaces, and Snowflake CoWork in your account
 - A role with the `MANAGE ACCESS ON DASHBOARD ARTIFACTS` privilege, which is needed to publish dashboards as artifacts and choose who can view them. It is [granted to `PUBLIC` by default](https://docs.snowflake.com/en/release-notes/bcr-bundles/un-bundled/bcr-manage-access-dashboard-artifacts) unless your administrator revoked it
 
-Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
+Everything in this guide runs in Snowsight. You don't need Python, a CLI, or a local copy of the code. The [companion repository](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards) holds the SQL, the synthetic data, and the dashboard file, and Snowflake reads them directly from GitHub.
 
 ## Setup
 
@@ -117,7 +117,7 @@ CREATE API INTEGRATION IF NOT EXISTS REVENUE_PULSE_GIT_API
 
 CREATE GIT REPOSITORY IF NOT EXISTS REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO
   API_INTEGRATION = REVENUE_PULSE_GIT_API
-  ORIGIN = 'https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0.git';
+  ORIGIN = 'https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards.git';
 
 ALTER GIT REPOSITORY REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO FETCH;
 
@@ -169,7 +169,7 @@ EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branc
 +-----------+----------+--------------+
 ```
 
-The [full setup script](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0/blob/main/sql/01_setup.sql) creates the tables and stage, copies the CSVs with `COPY FILES`, and loads them by column name. It truncates each table first. Run it only in the dedicated demo database: rerunning replaces any existing demo-table data.
+The [full setup script](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards/blob/main/sql/01_setup.sql) creates the tables and stage, copies the CSVs with `COPY FILES`, and loads them by column name. It truncates each table first. Run it only in the dedicated demo database: rerunning replaces any existing demo-table data.
 
 > **Notes:**
 >
@@ -207,7 +207,7 @@ EXECUTE IMMEDIATE FROM @REVENUE_PULSE_DB.DASHBOARD_DEMO.REVENUE_PULSE_REPO/branc
 
 It defines facts in USD, dimensions such as region, segment, and recorded driver, and metrics for net revenue, target, variance, attainment, and margin. Ratio metrics use [`DIV0NULL`](https://docs.snowflake.com/en/sql-reference/functions/div0null), which returns zero when the divisor is zero or NULL. An empty grouped result can still contain no rows; zero and missing data are not interchangeable.
 
-See the [full semantic-view definition](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0/blob/main/sql/02_semantic_view.sql) for joins and formulas. Its `AI_SQL_GENERATION` clause defines "Q3" and "last quarter" as July through September 2026; check generated query dates when comparing answers.
+See the [full semantic-view definition](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards/blob/main/sql/02_semantic_view.sql) for joins and formulas. Its `AI_SQL_GENERATION` clause defines "Q3" and "last quarter" as July through September 2026; check generated query dates when comparing answers.
 
 ### Understand the Metric Definitions
 
@@ -232,7 +232,7 @@ Do not create another semantic view or change its definitions.
 
 ### Agent Spec
 
-The [agent specification in `sql/03_agent.sql`](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0/blob/main/sql/03_agent.sql) configures one Cortex Analyst tool, `revenue_analytics`, over the shared semantic view. It uses `COMPUTE_WH` and instructs Revenue Advisor to quantify recorded drivers separately from hypotheses.
+The [agent specification in `sql/03_agent.sql`](https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards/blob/main/sql/03_agent.sql) configures one Cortex Analyst tool, `revenue_analytics`, over the shared semantic view. It uses `COMPUTE_WH` and instructs Revenue Advisor to quantify recorded drivers separately from hypotheses.
 
 ### Create the Agent
 
@@ -273,7 +273,7 @@ CoWork conversation started from a dashboard artifact.
 Create a workspace from the companion repository so you can keep the completed example beside your own draft:
 
 1. In **Workspaces**, select **+** (Create new workspace) at the top of the file tree, then select **Git workspace**.
-2. For **Repository URL**, paste `https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards-2-0`. The workspace name fills in from the URL.
+2. For **Repository URL**, paste `https://github.com/sfc-gh-cnantasenamat/getting-started-with-snowflake-dashboards`. The workspace name fills in from the URL.
 3. For **API integration**, select `REVENUE_PULSE_GIT_API`. The dialog may preselect a different integration, so check this field.
 4. Select **Public repository**, then select **Create**.
 
